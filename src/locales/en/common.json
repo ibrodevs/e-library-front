@@ -2,6 +2,7 @@
   "navbar": {
     "title": "SU e-library",
     "home": "Home",
+    "catalog": "Catalog",
     "contacts": "Contacts"
   },
   "hero": {
@@ -126,5 +127,81 @@
       "notFound": "Book not found"
     },
     "copyright": "⚠️ Content is protected by copyright. Download is prohibited."
+  },
+  "profile": {
+    "logout": "Logout",
+    "changePassword": "Change Password",
+    "visitHistory": "Visit History",
+    "recommendedBooks": "Recommended Textbooks",
+    "actions": {
+      "visit": "Library Visit",
+      "borrow": "Book Borrowed",
+      "return": "Book Returned"
+    },
+    "visitDescriptions": {
+      "readingRoom3": "Reading Room #3",
+      "computerLab": "Computer Lab"
+    },
+    "mockBooks": {
+      "cleanCode": {
+        "title": "Clean Code",
+        "author": "Robert Martin"
+      },
+      "algorithms": {
+        "title": "Algorithms. Construction and Analysis",
+        "author": "Thomas Cormen"
+      },
+      "javascript": {
+        "title": "JavaScript: The Definitive Guide",
+        "author": "David Flanagan"
+      },
+      "designPatterns": {
+        "title": "Design Patterns",
+        "author": "Erich Gamma"
+      },
+      "databases": {
+        "title": "Database Fundamentals"
+      }
+    },
+    "recommendedBooksData": {
+      "sicp": {
+        "title": "Structure and Interpretation of Computer Programs",
+        "author": "Harold Abelson",
+        "subject": "Programming"
+      },
+      "ai": {
+        "title": "Artificial Intelligence. A Modern Approach",
+        "author": "Stuart Russell",
+        "subject": "Artificial Intelligence"
+      },
+      "networks": {
+        "title": "Computer Networks",
+        "author": "Andrew Tanenbaum",
+        "subject": "Networks"
+      }
+    },
+    "passwordForm": {
+      "title": "Change Password",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm New Password",
+      "placeholders": {
+        "current": "Enter current password",
+        "new": "Minimum 6 characters",
+        "confirm": "Repeat new password"
+      },
+      "errors": {
+        "required": "Enter current password",
+        "incorrect": "Incorrect current password",
+        "newRequired": "Enter new password",
+        "tooShort": "Password must be at least 6 characters",
+        "same": "New password must be different from current",
+        "confirmRequired": "Confirm new password",
+        "mismatch": "Passwords do not match"
+      },
+      "success": "Password successfully changed!",
+      "changeButton": "Change Password",
+      "saving": "Saving..."
+    }
   }
 }

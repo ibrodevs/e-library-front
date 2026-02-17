@@ -37,3 +37,116 @@
 .language-btn.active {
   @apply bg-blue-600 text-white;
 }
+
+/* Blob Animations */
+@keyframes blob1 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  }
+  25% {
+    transform: translate(20px, -30px) scale(1.1);
+    border-radius: 30% 60% 70% 40% / 50% 60% 40% 50%;
+  }
+  50% {
+    transform: translate(-20px, 20px) scale(0.9);
+    border-radius: 50% 50% 50% 50% / 40% 60% 50% 60%;
+  }
+  75% {
+    transform: translate(30px, 10px) scale(1.05);
+    border-radius: 70% 30% 50% 50% / 30% 50% 50% 70%;
+  }
+}
+
+@keyframes blob2 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    border-radius: 40% 60% 60% 40% / 60% 40% 60% 40%;
+  }
+  25% {
+    transform: translate(-25px, 20px) scale(1.15) rotate(45deg);
+    border-radius: 60% 40% 30% 70% / 40% 70% 30% 60%;
+  }
+  50% {
+    transform: translate(15px, -25px) scale(0.95) rotate(90deg);
+    border-radius: 30% 70% 40% 60% / 50% 50% 50% 50%;
+  }
+  75% {
+    transform: translate(-15px, -10px) scale(1.1) rotate(135deg);
+    border-radius: 50% 50% 60% 40% / 70% 30% 70% 30%;
+  }
+}
+
+@keyframes blob3 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    border-radius: 50% 50% 40% 60% / 50% 60% 40% 50%;
+  }
+  33% {
+    transform: translate(15px, 25px) scale(1.08);
+    border-radius: 70% 30% 60% 40% / 60% 50% 40% 60%;
+  }
+  66% {
+    transform: translate(-20px, -15px) scale(0.92);
+    border-radius: 40% 60% 50% 50% / 30% 70% 60% 40%;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Gradient Animation */
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Blob Animation Classes */
+.animate-blob-1 {
+  animation: blob1 20s ease-in-out infinite;
+}
+
+.animate-blob-2 {
+  animation: blob2 25s ease-in-out infinite;
+  animation-delay: 2s;
+}
+
+.animate-blob-3 {
+  animation: blob3 30s ease-in-out infinite;
+  animation-delay: 4s;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 4s ease-in-out infinite;
+}
+
+.animate-gradient {
+  animation: gradient-shift 15s ease infinite;
+  background-size: 200% 200%;
+}

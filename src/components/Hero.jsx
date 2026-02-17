@@ -1,10 +1,12 @@
 import { motion, useAnimation, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { FaBook, FaSearch, FaUserGraduate, FaCalendarAlt, FaArrowRight, FaBookOpen, FaBookReader } from "react-icons/fa";
 
 const LibraryHero = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const rotateX = useTransform(y, [-100, 100], [5, -5]);
@@ -233,6 +235,7 @@ const LibraryHero = () => {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            onClick={() => navigate('/catalog')}
             className="relative px-8 py-4 bg-transparent border-2 border-blue-400 rounded-full font-bold text-blue-300 overflow-hidden group"
           >
             <span className="relative z-10 flex items-center gap-2">

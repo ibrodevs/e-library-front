@@ -1,78 +1,42 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import {
   FaSignOutAlt,
-  FaHistory,
-  FaStar,
   FaUserGraduate,
-  FaCalendarAlt,
+  FaEnvelope,
+  FaUsers,
+  FaGraduationCap,
+  FaSpinner,
 } from 'react-icons/fa';
 import ChangePasswordForm from '../components/ChangePasswordForm';
-import { getUserData, logout } from '../utils/auth';
-import type { VisitHistory, RecommendedBook } from '../types/auth';
+import { logout } from '../utils/auth';
+import { getProfileApi, type ProfileResponse } from '../api/authApi';
 
 const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const userData = getUserData();
+  const [profile, setProfile] = useState<ProfileResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Мок-данные истории посещений
-  const mockVisitHistory: VisitHistory[] = [
-    {
-      id: '1',
-      date: '2026-02-17',
-      action: t('profile.actions.visit'),
-      description: t('profile.visitDescriptions.readingRoom3'),
-    },
-    {
-      id: '2',
-      date: '2026-02-15',
-      action: t('profile.actions.borrow'),
-      description: t('profile.mockBooks.javascript.title'),
-    },
-    {
-      id: '3',
-      date: '2026-02-10',
-      action: t('profile.actions.return'),
-      description: t('profile.mockBooks.databases.title'),
-    },
-    {
-      id: '4',
-      date: '2026-02-05',
-      action: t('profile.actions.visit'),
-      description: t('profile.visitDescriptions.computerLab'),
-    },
-  ];
-
-  // Мок-данные рекомендованных учебников
-  const mockRecommendedBooks: RecommendedBook[] = [
-    {
-      id: '1',
-      title: t('profile.recommendedBooksData.sicp.title'),
-      author: t('profile.recommendedBooksData.sicp.author'),
-      coverImage: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop',
-      subject: t('profile.recommendedBooksData.sicp.subject'),
-      rating: 4.8,
-    },
-    {
-      id: '2',
-      title: t('profile.recommendedBooksData.ai.title'),
-      author: t('profile.recommendedBooksData.ai.author'),
-      coverImage: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400&h=600&fit=crop',
-      subject: t('profile.recommendedBooksData.ai.subject'),
-      rating: 4.9,
-    },
-    {
-      id: '3',
-      title: t('profile.recommendedBooksData.networks.title'),
-      author: t('profile.recommendedBooksData.networks.author'),
-      coverImage: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=600&fit=crop',
-      subject: t('profile.recommendedBooksData.networks.subject'),
-      rating: 4.7,
-    },
-  ];
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setIsLoading(true);
+        const data = await getProfileApi();
+        setProfile(data);
+      } catch (err: any) {
+        setError(
+          err.response?.data?.detail || t('profile.errors.fetchFailed')
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProfile();
+  }, [t]);
 
   // Выход из системы
   const handleLogout = () => {
@@ -80,11 +44,34 @@ const ProfilePage: React.FC = () => {
     navigate('/login');
   };
 
-  if (!userData) {
-    return null; // ProtectedRoute уже перенаправит на логин
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-950 flex items-center justify-center">
+        <div className="text-center">
+          <FaSpinner className="animate-spin text-4xl text-blue-500 mx-auto mb-4" />
+          <p className="text-slate-600 dark:text-slate-400">{t('profile.loading')}</p>
+        </div>
+      </div>
+    );
   }
 
-  const fullName = `${userData.lastName} ${userData.firstName} ${userData.middleName || ''}`.trim();
+  if (error || !profile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-950 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 text-lg mb-4">{error || t('profile.errors.fetchFailed')}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            {t('profile.retry')}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const fullName = `${profile.last_name} ${profile.first_name}`.trim();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-950">
@@ -104,7 +91,7 @@ const ProfilePage: React.FC = () => {
                 className="relative"
               >
                 <img
-                  src={userData.avatar || 'https://ui-avatars.com/api/?name=' + fullName}
+                  src={'https://ui-avatars.com/api/?name=' + encodeURIComponent(fullName) + '&background=3b82f6&color=fff&size=200'}
                   alt={fullName}
                   className="w-14 h-14 rounded-full border-2 border-blue-500 shadow-lg object-cover"
                 />
@@ -118,7 +105,7 @@ const ProfilePage: React.FC = () => {
                   <FaUserGraduate className="text-blue-500 text-sm" />
                 </h1>
                 <p className="text-sm text-slate-600 dark:text-slate-400">
-                  {userData.studentId} • {userData.department}
+                  {profile.email}
                 </p>
               </div>
             </div>
@@ -139,115 +126,65 @@ const ProfilePage: React.FC = () => {
 
       {/* Основной контент */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Смена пароля */}
-        <ChangePasswordForm />
+        {/* Информация о пользователе */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-8"
+        >
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-6">
+            <FaUserGraduate className="text-blue-500" />
+            {t('profile.personalInfo')}
+          </h2>
 
-        <div className="grid mt-8 grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* История посещений */}
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-6">
-              <FaHistory className="text-indigo-500" />
-              {t('profile.visitHistory')}
-            </h2>
-
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
-              <div className="divide-y divide-slate-100 dark:divide-slate-700">
-                {mockVisitHistory.map((visit) => (
-                  <motion.div
-                    key={visit.id}
-                    whileHover={{ backgroundColor: 'rgba(59, 130, 246, 0.05)' }}
-                    className="p-4 transition-colors"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 bg-indigo-500/10 rounded-lg mt-1">
-                        <FaCalendarAlt className="text-indigo-500 text-sm" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h3 className="font-semibold text-slate-900 dark:text-white">
-                              {visit.action}
-                            </h3>
-                            {visit.description && (
-                              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                                {visit.description}
-                              </p>
-                            )}
-                          </div>
-                          <span className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap ml-4">
-                            {new Date(visit.date).toLocaleDateString('ru-RU')}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
+              {/* Имя */}
+              <div className="p-5 border-b md:border-r border-slate-100 dark:border-slate-700">
+                <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">{t('profile.fields.firstName')}</p>
+                <p className="text-lg font-semibold text-slate-900 dark:text-white">{profile.first_name}</p>
+              </div>
+              {/* Фамилия */}
+              <div className="p-5 border-b border-slate-100 dark:border-slate-700">
+                <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">{t('profile.fields.lastName')}</p>
+                <p className="text-lg font-semibold text-slate-900 dark:text-white">{profile.last_name}</p>
+              </div>
+              {/* Email */}
+              <div className="p-5 border-b md:border-r border-slate-100 dark:border-slate-700">
+                <div className="flex items-center gap-2 mb-1">
+                  <FaEnvelope className="text-blue-500 text-xs" />
+                  <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">Email</p>
+                </div>
+                <p className="text-lg font-semibold text-slate-900 dark:text-white">{profile.email}</p>
+              </div>
+              {/* Группа */}
+              <div className="p-5 border-b border-slate-100 dark:border-slate-700">
+                <div className="flex items-center gap-2 mb-1">
+                  <FaUsers className="text-indigo-500 text-xs" />
+                  <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('profile.fields.group')}</p>
+                </div>
+                <p className="text-lg font-semibold text-slate-900 dark:text-white">{profile.group}</p>
+              </div>
+              {/* Курс */}
+              <div className="p-5 border-b md:border-r border-slate-100 dark:border-slate-700 md:border-b-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <FaGraduationCap className="text-green-500 text-xs" />
+                  <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('profile.fields.course')}</p>
+                </div>
+                <p className="text-lg font-semibold text-slate-900 dark:text-white">{profile.course}</p>
+              </div>
+              {/* Пароль */}
+              <div className="p-5">
+                <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">{t('profile.fields.password')}</p>
+                <p className="text-lg font-semibold text-slate-900 dark:text-white tracking-widest">********</p>
               </div>
             </div>
-          </motion.section>
+          </div>
+        </motion.section>
 
-          {/* Рекомендованные учебники */}
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-6">
-              <FaStar className="text-yellow-500" />
-              {t('profile.recommendedBooks')}
-            </h2>
-
-            <div className="space-y-4">
-              {mockRecommendedBooks.map((book) => (
-                <motion.div
-                  key={book.id}
-                  whileHover={{ scale: 1.02 }}
-                  className="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-sm border border-slate-100 dark:border-slate-700 hover:border-blue-500/50 transition-all cursor-pointer"
-                >
-                  <div className="flex gap-4">
-                    {/* Обложка */}
-                    <div className="flex-shrink-0">
-                      <div className="w-16 h-24 rounded-lg overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800">
-                        {book.coverImage && (
-                          <img
-                            src={book.coverImage}
-                            alt={book.title}
-                            className="w-full h-full object-cover"
-                          />
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Информация */}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-slate-900 dark:text-white line-clamp-2 mb-1">
-                        {book.title}
-                      </h3>
-                      <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
-                        {book.author}
-                      </p>
-                      <div className="flex items-center gap-4">
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                          {book.subject}
-                        </span>
-                        {book.rating && (
-                          <div className="flex items-center gap-1 text-yellow-500">
-                            <FaStar className="text-xs" />
-                            <span className="text-sm font-semibold">{book.rating}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.section>
-        </div>
+        {/* Смена пароля */}
+        <ChangePasswordForm />
       </main>
     </div>
   );

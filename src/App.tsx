@@ -4,10 +4,9 @@ import { queryClient } from './lib/queryClient';
 import NavbarAuth from './components/NavbarAuth';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
-import Catalog from './pages/Catalog';
 import CatalogOptimized from './pages/CatalogOptimized';
 import Contacts from './pages/Contacts';
-import BookReader from './pages/BookReader';
+import BookReaderOptimized from './pages/BookReaderOptimized';
 import LoginPage from './pages/LoginPage';
 import ProfilePage from './pages/ProfilePage';
 import Footer from './components/Footer';
@@ -28,14 +27,6 @@ function Layout() {
             path="/catalog"
             element={
               <ProtectedRoute>
-                <Catalog />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/catalog-optimized"
-            element={
-              <ProtectedRoute>
                 <CatalogOptimized />
               </ProtectedRoute>
             }
@@ -45,7 +36,7 @@ function Layout() {
             path="/read/:bookId"
             element={
               <ProtectedRoute>
-                <BookReader />
+                <BookReaderOptimized />
               </ProtectedRoute>
             }
           />

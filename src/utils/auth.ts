@@ -1,66 +1,77 @@
-import type { AuthToken, Student } from '../types/auth';
+import type { UserProfile } from '../types/auth';
 
-const AUTH_TOKEN_KEY = 'auth_token';
+const ACCESS_TOKEN_KEY = 'access_token';
+const REFRESH_TOKEN_KEY = 'refresh_token';
 const USER_DATA_KEY = 'user_data';
 
 /**
- * Сохранить токен авторизации
+ * Сохранить JWT токены
  */
-export const saveAuthToken = (token: string, expiresIn: number = 24 * 60 * 60 * 1000): void => {
-  const authToken: AuthToken = {
-    token,
-    expiresAt: Date.now() + expiresIn,
-  };
-  localStorage.setItem(AUTH_TOKEN_KEY, JSON.stringify(authToken));
+export const saveTokens = (access: string, refresh: string): void => {
+  console.log('💾 Saving tokens to localStorage:', {
+    accessLength: access.length,
+    refreshLength: refresh.length,
+  });
+  
+  localStorage.setItem(ACCESS_TOKEN_KEY, access);
+  localStorage.setItem(REFRESH_TOKEN_KEY, refresh);
+  
+  console.log('✅ Tokens saved. Verifying...', {
+    accessTokenSaved: !!localStorage.getItem(ACCESS_TOKEN_KEY),
+    refreshTokenSaved: !!localStorage.getItem(REFRESH_TOKEN_KEY),
+  });
 };
 
 /**
- * Получить токен авторизации
+ * Получить access token
  */
 export const getAuthToken = (): string | null => {
-  try {
-    const stored = localStorage.getItem(AUTH_TOKEN_KEY);
-    if (!stored) return null;
-
-    const authToken: AuthToken = JSON.parse(stored);
-    
-    // Проверяем, не истек ли токен
-    if (Date.now() > authToken.expiresAt) {
-      removeAuthToken();
-      return null;
-    }
-
-    return authToken.token;
-  } catch {
-    return null;
+  const token = localStorage.getItem(ACCESS_TOKEN_KEY);
+  if (!token) {
+    console.warn('⚠️ getAuthToken: NO TOKEN FOUND in localStorage');
+  } else {
+    console.log('✅ getAuthToken: Token found, length:', token.length);
   }
+  return token;
 };
 
 /**
- * Удалить токен авторизации
+ * Получить refresh token
+ */
+export const getRefreshToken = (): string | null => {
+  return localStorage.getItem(REFRESH_TOKEN_KEY);
+};
+
+/**
+ * Удалить токены авторизации
  */
 export const removeAuthToken = (): void => {
-  localStorage.removeItem(AUTH_TOKEN_KEY);
+  console.log('🗑️ Removing tokens from localStorage');
+  localStorage.removeItem(ACCESS_TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
 };
 
 /**
  * Проверить, авторизован ли пользователь
  */
 export const isAuthenticated = (): boolean => {
-  return getAuthToken() !== null;
+  const isAuth = getAuthToken() !== null;
+  console.log('🔐 isAuthenticated:', isAuth);
+  return isAuth;
 };
 
 /**
  * Сохранить данные пользователя
  */
-export const saveUserData = (user: Student): void => {
+export const saveUserData = (user: UserProfile): void => {
+  console.log('💾 Saving user data:', user);
   localStorage.setItem(USER_DATA_KEY, JSON.stringify(user));
 };
 
 /**
  * Получить данные пользователя
  */
-export const getUserData = (): Student | null => {
+export const getUserData = (): UserProfile | null => {
   try {
     const stored = localStorage.getItem(USER_DATA_KEY);
     if (!stored) return null;
@@ -81,45 +92,7 @@ export const removeUserData = (): void => {
  * Полный выход из системы
  */
 export const logout = (): void => {
+  console.log('🚪 Logging out - removing all auth data');
   removeAuthToken();
   removeUserData();
-};
-
-/**
- * Имитация API логина (заглушка)
- */
-export const mockLogin = async (
-  studentIdOrEmail: string,
-  password: string
-): Promise<{ token: string; user: Student }> => {
-  // Имитация задержки сети
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  // Простая валидация (в реальности это делается на сервере)
-  if (!studentIdOrEmail || !password) {
-    throw new Error('Заполните все поля');
-  }
-
-  // Проверяем пароль (фиксированный для всех пользователей)
-  if (password !== 'test1234') {
-    throw new Error('Неверный пароль');
-  }
-
-  // Возвращаем мок-данные с сохраненным паролем
-  return {
-    token: 'mock_token_' + Math.random().toString(36).substr(2, 9),
-    user: {
-      id: '1',
-      firstName: 'Алим',
-      lastName: 'Салымбеков',
-      middleName: 'Азаматович',
-      studentId: studentIdOrEmail.includes('@') ? 'STU001234' : studentIdOrEmail,
-      email: studentIdOrEmail.includes('@') ? studentIdOrEmail : 'student@su.edu.kg',
-      password: 'test1234',
-      avatar: 'https://ui-avatars.com/api/?name=Alim+Salymbekov&background=3b82f6&color=fff&size=200',
-      department: 'Факультет компьютерных наук',
-      course: 3,
-      group: 'КТ-3-1',
-    },
-  };
 };

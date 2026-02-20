@@ -1,7 +1,12 @@
 // Типы для авторизации
 export interface LoginCredentials {
-  studentIdOrEmail: string;
+  email: string;
   password: string;
+}
+
+export interface AuthTokens {
+  access: string;
+  refresh: string;
 }
 
 export interface AuthToken {
@@ -9,6 +14,17 @@ export interface AuthToken {
   expiresAt: number;
 }
 
+// Профиль пользователя (ответ от backend)
+export interface UserProfile {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  group: string;
+  course: number;
+}
+
+// Совместимость со старыми компонентами
 export interface Student {
   id: string;
   firstName: string;
@@ -16,7 +32,7 @@ export interface Student {
   middleName?: string;
   studentId: string;
   email: string;
-  password?: string; // Для mock-проверки смены пароля
+  password?: string;
   avatar?: string;
   department?: string;
   course?: number;

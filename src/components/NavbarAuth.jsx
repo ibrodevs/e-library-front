@@ -129,12 +129,12 @@ export default function HeroNavbar() {
                 onClick={() => window.scrollTo(0, 0)}
               >
                 <img 
-                  src={userData?.avatar || 'https://ui-avatars.com/api/?name=User'}
+                  src={'https://ui-avatars.com/api/?name=' + encodeURIComponent((userData?.first_name || '') + ' ' + (userData?.last_name || '')) + '&background=3b82f6&color=fff&size=48'}
                   alt="Avatar"
                   className="w-6 h-6 rounded-full border border-white/50"
                 />
                 <span className="relative z-10 hidden sm:inline">
-                  {userData?.firstName || 'Профиль'}
+                  {userData?.first_name || t('profile.personalInfo')}
                 </span>
               </Link>
               
@@ -161,7 +161,7 @@ export default function HeroNavbar() {
             >
               <span className="relative z-10 flex items-center gap-2">
                 <FaUser className="text-sm" />
-                <span className="hidden sm:inline">Войти</span>
+                <span className="hidden sm:inline">{t('login.submit')}</span>
               </span>
             </Link>
           )}
@@ -308,11 +308,11 @@ export default function HeroNavbar() {
               onClick={closeMenu}
             >
               <img 
-                src={userData?.avatar || 'https://ui-avatars.com/api/?name=User'}
+                src={'https://ui-avatars.com/api/?name=' + encodeURIComponent((userData?.first_name || '') + ' ' + (userData?.last_name || '')) + '&background=3b82f6&color=fff&size=48'}
                 alt="Avatar"
                 className="w-8 h-8 rounded-full border border-white/50"
               />
-              <span>{userData?.firstName || 'Профиль'}</span>
+              <span>{userData?.first_name || t('profile.personalInfo')}</span>
             </Link>
           ) : (
             <Link 
@@ -321,7 +321,7 @@ export default function HeroNavbar() {
               onClick={closeMenu}
             >
               <FaUser />
-              <span>Войти</span>
+              <span>{t('login.submit')}</span>
             </Link>
           )}
           

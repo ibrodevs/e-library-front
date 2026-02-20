@@ -2,9 +2,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { FaSearch, FaBook, FaFilter, FaBookOpen, FaChevronDown, FaSpinner, FaTimes } from "react-icons/fa";
+import { getBooks } from "../api/books";
+import { getCategories } from "../api/category";
 
 const LibraryComponent = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -15,33 +17,24 @@ const LibraryComponent = () => {
   const [error, setError] = useState(null);
   const filterRef = useRef(null);
 
-  // Базовый URL API
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
-
-  // Загрузка данных с бэкенда
+  // Загрузка данных с бэкенда (Heroku)
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
         
-        const currentLanguage = i18n.language;
-        
-        const [booksResponse, categoriesResponse] = await Promise.all([
-          fetch(`${API_BASE_URL}/books/?language=${currentLanguage}`),
-          fetch(`${API_BASE_URL}/categories/?language=${currentLanguage}`)
-        ]);
+        // Используем готовые API функции которые берут с Heroku
+        const booksResponse = await getBooks();
+        const categoriesResponse = await getCategories();
 
-        if (!booksResponse.ok || !categoriesResponse.ok) {
-          throw new Error('Failed to fetch data');
-        }
+        // Извлекаем данные из ответов
+        let booksData = booksResponse.data;
+        let categoriesData = categoriesResponse.data;
 
-        const booksData = await booksResponse.json();
-        const categoriesData = await categoriesResponse.json();
-
-        // Извлекаем массивы из ответов API (если они завернуты в объект)
-        const books = Array.isArray(booksData) ? booksData : (booksData.value || booksData);
-        const categories = Array.isArray(categoriesData) ? categoriesData : (categoriesData.value || categoriesData);
+        // Обрабатываем разные форматы API ответов
+        const books = Array.isArray(booksData) ? booksData : (booksData.results || booksData.value || booksData);
+        const categories = Array.isArray(categoriesData) ? categoriesData : (categoriesData.results || categoriesData.value || categoriesData);
         
         setBooks(books);
         setCategories(categories);
@@ -54,7 +47,7 @@ const LibraryComponent = () => {
     };
 
     fetchData();
-  }, [i18n.language, t]);
+  }, [t]);
 
   // Получаем текущую переведенную категорию
   const currentCategoryLabel = useMemo(() => {
@@ -143,7 +136,8 @@ const LibraryComponent = () => {
     if (pdfUrl && pdfUrl.startsWith('http')) {
       window.open(pdfUrl, '_blank', 'noopener,noreferrer');
     } else if (pdfUrl) {
-      const fullUrl = `${API_BASE_URL.replace('/api', '')}${pdfUrl}`;
+      const HEROKU_BASE = 'https://su-library-back-d2d8d21af2e4.herokuapp.com';
+      const fullUrl = `${HEROKU_BASE}${pdfUrl}`;
       window.open(fullUrl, '_blank', 'noopener,noreferrer');
     } else {
       console.error('PDF URL not available');

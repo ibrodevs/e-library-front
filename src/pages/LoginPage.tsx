@@ -1,16 +1,18 @@
 import React, { useState, FormEvent, ChangeEvent } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { FaUser, FaLock, FaSpinner, FaBook } from 'react-icons/fa';
-import { mockLogin, saveAuthToken, saveUserData } from '../utils/auth';
+import { FaEnvelope, FaLock, FaSpinner, FaBook } from 'react-icons/fa';
+import { loginApi } from '../api/authApi';
+import { saveTokens } from '../utils/auth';
 
 interface FormData {
-  studentIdOrEmail: string;
+  email: string;
   password: string;
 }
 
 interface FormErrors {
-  studentIdOrEmail?: string;
+  email?: string;
   password?: string;
   general?: string;
 }
@@ -18,11 +20,12 @@ interface FormErrors {
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   const from = (location.state as any)?.from?.pathname || '/profile';
   const needsAuth = !!(location.state as any)?.from;
 
   const [formData, setFormData] = useState<FormData>({
-    studentIdOrEmail: '',
+    email: '',
     password: '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
@@ -38,21 +41,14 @@ const LoginPage: React.FC = () => {
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    // Проверка поля студента/email
-    if (!formData.studentIdOrEmail.trim()) {
-      newErrors.studentIdOrEmail = 'Это поле обязательно';
-    } else if (
-      formData.studentIdOrEmail.includes('@') &&
-      !isValidEmail(formData.studentIdOrEmail)
-    ) {
-      newErrors.studentIdOrEmail = 'Неверный формат email';
+    if (!formData.email.trim()) {
+      newErrors.email = t('login.errors.emailRequired');
+    } else if (!isValidEmail(formData.email)) {
+      newErrors.email = t('login.errors.emailInvalid');
     }
 
-    // Проверка пароля
     if (!formData.password) {
-      newErrors.password = 'Введите пароль';
-    } else if (formData.password.length < 4) {
-      newErrors.password = 'Пароль должен быть не менее 4 символов';
+      newErrors.password = t('login.errors.passwordRequired');
     }
 
     setErrors(newErrors);
@@ -66,7 +62,6 @@ const LoginPage: React.FC = () => {
       ...prev,
       [name]: value,
     }));
-    // Очищаем ошибку для этого поля
     if (errors[name as keyof FormErrors]) {
       setErrors((prev) => ({
         ...prev,
@@ -78,8 +73,7 @@ const LoginPage: React.FC = () => {
   // Обработка отправки формы
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    
-    // Валидация
+
     if (!validateForm()) {
       return;
     }
@@ -88,22 +82,23 @@ const LoginPage: React.FC = () => {
     setErrors({});
 
     try {
-      // Имитация API запроса
-      const { token, user } = await mockLogin(
-        formData.studentIdOrEmail,
-        formData.password
-      );
+      const response = await loginApi({
+        email: formData.email,
+        password: formData.password,
+      });
 
-      // Сохраняем токен и данные пользователя
-      saveAuthToken(token);
-      saveUserData(user);
+      // Сохраняем JWT токены
+      saveTokens(response.access, response.refresh);
 
       // Редирект на страницу откуда пришел или на профиль
       navigate(from, { replace: true });
-    } catch (error) {
-      setErrors({
-        general: error instanceof Error ? error.message : 'Ошибка авторизации',
-      });
+    } catch (error: any) {
+      const message =
+        error.response?.data?.detail ||
+        error.response?.data?.non_field_errors?.[0] ||
+        error.response?.data?.error ||
+        t('login.errors.general');
+      setErrors({ general: message });
     } finally {
       setIsLoading(false);
     }
@@ -146,10 +141,10 @@ const LoginPage: React.FC = () => {
               <FaBook className="text-white text-2xl" />
             </motion.div>
             <h1 className="text-3xl font-bold text-white mb-2">
-              Добро пожаловать
+              {t('login.title')}
             </h1>
             <p className="text-slate-300">
-              Войдите в личный кабинет студента
+              {t('login.subtitle')}
             </p>
           </div>
 
@@ -161,46 +156,46 @@ const LoginPage: React.FC = () => {
               className="mb-6 p-4 bg-blue-500/20 border border-blue-400/50 rounded-xl backdrop-blur-sm"
             >
               <p className="text-sm text-blue-100 text-center">
-                ⚠️ Для просмотра и чтения книг необходимо войти в систему
+                ⚠️ {t('login.authRequired')}
               </p>
             </motion.div>
           )}
 
           {/* Форма */}
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Поле студенческого / Email */}
+            {/* Поле Email */}
             <div>
               <label
-                htmlFor="studentIdOrEmail"
+                htmlFor="email"
                 className="block text-sm font-medium text-slate-200 mb-2"
               >
-                Номер студенческого / Email
+                {t('login.emailLabel')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FaUser className="text-slate-400" />
+                  <FaEnvelope className="text-slate-400" />
                 </div>
                 <input
-                  type="text"
-                  id="studentIdOrEmail"
-                  name="studentIdOrEmail"
-                  value={formData.studentIdOrEmail}
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
                   onChange={handleChange}
                   className={`block w-full pl-10 pr-3 py-3 bg-white/5 border ${
-                    errors.studentIdOrEmail
+                    errors.email
                       ? 'border-red-400 focus:ring-red-500'
                       : 'border-slate-600 focus:ring-blue-500'
                   } rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all`}
-                  placeholder="STU001234 или student@su.edu.kg"
+                  placeholder={t('login.emailPlaceholder')}
                 />
               </div>
-              {errors.studentIdOrEmail && (
+              {errors.email && (
                 <motion.p
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="mt-2 text-sm text-red-400"
                 >
-                  {errors.studentIdOrEmail}
+                  {errors.email}
                 </motion.p>
               )}
             </div>
@@ -211,7 +206,7 @@ const LoginPage: React.FC = () => {
                 htmlFor="password"
                 className="block text-sm font-medium text-slate-200 mb-2"
               >
-                Пароль
+                {t('login.passwordLabel')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -268,10 +263,10 @@ const LoginPage: React.FC = () => {
               {isLoading ? (
                 <>
                   <FaSpinner className="animate-spin" />
-                  <span>Вход...</span>
+                  <span>{t('login.loading')}</span>
                 </>
               ) : (
-                <span>Войти</span>
+                <span>{t('login.submit')}</span>
               )}
             </motion.button>
 
@@ -281,18 +276,10 @@ const LoginPage: React.FC = () => {
                 to="/"
                 className="text-sm text-slate-300 hover:text-white transition-colors"
               >
-                ← Вернуться на главную
+                ← {t('login.backToHome')}
               </Link>
             </div>
           </form>
-
-          {/* Подсказка для тестирования */}
-          <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl">
-            <p className="text-xs text-slate-300 text-center">
-              <strong className="text-blue-400">Для тестирования:</strong> <br />
-              Введите любой email или студенческий и пароль (мин. 4 символа)
-            </p>
-          </div>
         </div>
       </motion.div>
     </div>

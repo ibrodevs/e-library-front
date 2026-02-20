@@ -5,6 +5,23 @@
     "catalog": "Каталог",
     "contacts": "Контакты"
   },
+  "login": {
+    "title": "Добро пожаловать",
+    "subtitle": "Войдите в личный кабинет",
+    "emailLabel": "Email",
+    "emailPlaceholder": "student@su.edu.kg",
+    "passwordLabel": "Пароль",
+    "submit": "Войти",
+    "loading": "Вход...",
+    "backToHome": "Вернуться на главную",
+    "authRequired": "Для просмотра и чтения книг необходимо войти в систему",
+    "errors": {
+      "emailRequired": "Введите email",
+      "emailInvalid": "Неверный формат email",
+      "passwordRequired": "Введите пароль",
+      "general": "Ошибка авторизации. Проверьте email и пароль."
+    }
+  },
   "hero": {
     "title": "Цифровая Библиотека",
     "subtitle": "Крупнейшее собрание электронных книг и научных публикаций",
@@ -132,6 +149,19 @@
   },
   "profile": {
     "logout": "Выйти",
+    "loading": "Загрузка профиля...",
+    "retry": "Попробовать снова",
+    "personalInfo": "Личные данные",
+    "fields": {
+      "firstName": "Имя",
+      "lastName": "Фамилия",
+      "group": "Группа",
+      "course": "Курс",
+      "password": "Пароль"
+    },
+    "errors": {
+      "fetchFailed": "Не удалось загрузить данные профиля"
+    },
     "changePassword": "Смена пароля",
     "visitHistory": "История посещений",
     "recommendedBooks": "Рекомендованные учебники",
@@ -199,7 +229,8 @@
         "tooShort": "Пароль должен быть не менее 6 символов",
         "same": "Новый пароль должен отличаться от текущего",
         "confirmRequired": "Подтвердите новый пароль",
-        "mismatch": "Пароли не совпадают"
+        "mismatch": "Пароли не совпадают",
+        "general": "Ошибка при смене пароля"
       },
       "success": "Пароль успешно изменён!",
       "changeButton": "Изменить пароль",

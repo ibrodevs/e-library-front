@@ -2,7 +2,7 @@ import React, { useState, FormEvent, ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaLock, FaEye, FaEyeSlash, FaCheck, FaTimes } from 'react-icons/fa';
-import { getUserData } from '../utils/auth';
+import { changePasswordApi } from '../api/authApi';
 
 interface PasswordFormData {
   currentPassword: string;
@@ -19,7 +19,6 @@ interface PasswordErrors {
 
 const ChangePasswordForm: React.FC = () => {
   const { t } = useTranslation();
-  const userData = getUserData();
   const [formData, setFormData] = useState<PasswordFormData>({
     currentPassword: '',
     newPassword: '',
@@ -38,11 +37,9 @@ const ChangePasswordForm: React.FC = () => {
   const validateForm = (): boolean => {
     const newErrors: PasswordErrors = {};
 
-    // Проверка текущего пароля (в реальности будет проверка на бэкенде)
+    // Проверка текущего пароля
     if (!formData.currentPassword) {
       newErrors.currentPassword = t('profile.passwordForm.errors.required');
-    } else if (formData.currentPassword !== userData?.password) {
-      newErrors.currentPassword = t('profile.passwordForm.errors.incorrect');
     }
 
     // Проверка нового пароля
@@ -96,22 +93,69 @@ const ChangePasswordForm: React.FC = () => {
     setIsSubmitting(true);
     setErrors({});
 
-    // Имитация API запроса
-    setTimeout(() => {
-      // В реальности здесь был бы запрос на сервер
+    try {
+      await changePasswordApi({
+        current_password: formData.currentPassword,
+        new_password: formData.newPassword,
+      });
+
       setSuccessMessage(t('profile.passwordForm.success'));
       setFormData({
         currentPassword: '',
         newPassword: '',
         confirmPassword: '',
       });
-      setIsSubmitting(false);
 
       // Скрываем сообщение через 5 секунд
       setTimeout(() => {
         setSuccessMessage('');
       }, 5000);
-    }, 1000);
+    } catch (error: any) {
+      console.error('Change password error:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        message: error.message,
+      });
+      
+      let errorMessage = t('profile.passwordForm.errors.general');
+      
+      // Первоприоритетно проверяем специфические ошибки авторизации
+      if (error.response?.status === 401) {
+        errorMessage = '❌ Не авторизованы. Попробуйте перезагрузить страницу и заново войти в систему.';
+      } else if (error.response?.data) {
+        const data = error.response.data;
+        
+        // Проверяем разные варианты полей ошибок
+        if (typeof data === 'string') {
+          errorMessage = data;
+        } else if (data.old_password?.[0]) {
+          setErrors({ currentPassword: data.old_password[0] || t('profile.passwordForm.errors.incorrect') });
+          return;
+        } else if (data.current_password?.[0]) {
+          setErrors({ currentPassword: data.current_password[0] || t('profile.passwordForm.errors.incorrect') });
+          return;
+        } else if (data.new_password?.[0]) {
+          errorMessage = data.new_password[0];
+        } else if (data.password?.[0]) {
+          errorMessage = data.password[0];
+        } else if (data.non_field_errors?.[0]) {
+          errorMessage = data.non_field_errors[0];
+        } else if (data.detail) {
+          errorMessage = data.detail;
+        } else if (data.error) {
+          errorMessage = data.error;
+        }
+      }
+      
+      // Если 500 ошибка - значит проблема на бэкенде
+      if (error.response?.status === 500) {
+        errorMessage = '❌ Ошибка на сервере (500). Эндпоинт /api/profile/change-password/ не работает правильно.';
+      }
+      
+      setErrors({ general: errorMessage });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Переключение видимости пароля

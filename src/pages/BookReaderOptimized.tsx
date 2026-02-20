@@ -3,8 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { FaArrowLeft, FaChevronLeft, FaChevronRight, FaExpand, FaCompress } from 'react-icons/fa';
-import { useBook, useBookInitialData, usePrefetchPages } from '../hooks/useBookQueries';
-import { PdfLoadingIndicator, CoverSkeleton } from '../components/skeletons/BookSkeleton';
+import { useBook, usePrefetchPages } from '../hooks/useBookQueries';
+import { PdfLoadingIndicator } from '../components/skeletons/BookSkeleton';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 
@@ -21,21 +21,11 @@ const BookReaderOptimized: React.FC = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [pdfLoadProgress, setPdfLoadProgress] = useState(0);
 
-  // Получаем начальные данные из кэша для мгновенного отображения
-  const initialData = useBookInitialData(Number(bookId));
-
   // Загружаем полные данные книги
   const { data: book, isLoading, error } = useBook(Number(bookId));
-
-  // Prefetch соседних страниц
-  const prefetchSurroundingPages = usePrefetchPages(Number(bookId), currentPage);
-
-  // Prefetch при изменении текущей страницы
-  useEffect(() => {
-    if (book && totalPages > 0) {
-      prefetchSurroundingPages();
-    }
-  }, [currentPage, totalPages, book, prefetchSurroundingPages]);
+  
+  // Prefetch для оптимизации (отключен в текущей реализации)
+  usePrefetchPages();
 
   // Обработка успешной загрузки PDF документа
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
@@ -85,8 +75,8 @@ const BookReaderOptimized: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [currentPage, totalPages, isFullscreen]);
 
-  // Показываем мгновенный UI с данными из кэша (если есть)
-  const displayBook = book || initialData;
+  // Показываем мгновенный UI с данными книги
+  const displayBook = book;
 
   // Ошибка загрузки
   if (error) {
@@ -182,38 +172,35 @@ const BookReaderOptimized: React.FC = () => {
         </button>
       </div>
 
-      {/* Обложка книги (показываем, пока грузится PDF) */}
-      {displayBook?.cover_image_url && pdfLoadProgress < 100 && (
-        <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800 p-8">
-          <div className="max-w-md w-full">
-            <div className="aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl mb-6">
-              <img
-                src={displayBook.cover_image_url}
-                alt={displayBook.title}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="text-center">
-              <h2 className="text-2xl font-bold mb-2">{displayBook.title}</h2>
-              <p className="text-gray-400 mb-4">{displayBook.author}</p>
-              <PdfLoadingIndicator progress={pdfLoadProgress} />
+      {/* Основная область: PDF + оверлей с обложкой пока грузится */}
+      <div className="flex-1 overflow-auto bg-gray-900 relative flex items-center justify-center p-4">
+        {/* Оверлей с обложкой — показывается пока PDF не загружен */}
+        {displayBook?.cover_image_url && pdfLoadProgress < 100 && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800 p-8">
+            <div className="max-w-md w-full">
+              <div className="aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl mb-6 max-h-64 mx-auto">
+                <img
+                  src={displayBook.cover_image_url}
+                  alt={displayBook.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="text-center">
+                <h2 className="text-2xl font-bold mb-2">{displayBook.title}</h2>
+                <p className="text-gray-400 mb-4">{displayBook.author}</p>
+                <PdfLoadingIndicator progress={pdfLoadProgress} />
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* PDF Viewer */}
-      {displayBook?.pdf_file_url && (
-        <div className="flex-1 overflow-auto bg-gray-900 flex items-center justify-center p-4">
+        {/* PDF Viewer */}
+        {displayBook?.pdf_file_url ? (
           <Document
             file={displayBook.pdf_file_url}
             onLoadSuccess={onDocumentLoadSuccess}
             onLoadProgress={onLoadProgress}
-            loading={
-              <div className="flex items-center justify-center">
-                <PdfLoadingIndicator progress={pdfLoadProgress} />
-              </div>
-            }
+            loading={null}
             error={
               <div className="text-center text-red-400">
                 <p className="mb-4">Ошибка загрузки PDF</p>
@@ -235,8 +222,20 @@ const BookReaderOptimized: React.FC = () => {
               width={Math.min(window.innerWidth - 32, 1200)}
             />
           </Document>
-        </div>
-      )}
+        ) : (
+          !isLoading && (
+            <div className="text-center text-gray-400">
+              <p className="text-lg mb-2">PDF-файл недоступен для этой книги</p>
+              <button
+                onClick={() => navigate('/catalog')}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white"
+              >
+                Вернуться к каталогу
+              </button>
+            </div>
+          )
+        )}
+      </div>
 
       {/* Прогресс бар внизу */}
       {totalPages > 0 && (

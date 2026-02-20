@@ -1,8 +1,8 @@
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { queryKeys } from '../lib/queryClient';
 import * as bookApi from '../api/bookApi';
-import type { Book, Category, BookMetadata, BookPage, BookQueryParams } from '../types/book';
+import type { Book, BookQueryParams } from '../types/book';
 
 // ==== BOOKS HOOKS ====
 
@@ -47,25 +47,19 @@ export const useBookMetadata = (bookId: number) => {
 };
 
 /**
- * Hook для prefetch книги при наведении
+ * Hook для prefetch книги при наведении (оптимизирован для медленных сервер)
  */
 export const usePrefetchBook = () => {
   const queryClient = useQueryClient();
-  
+
   return (bookId: number) => {
-    // Prefetch метаданных книги
+    // Только prefetch основной книги, на странице reader загружать сам себе
     queryClient.prefetchQuery({
       queryKey: queryKeys.books.detail(bookId),
       queryFn: () => bookApi.fetchBookById(bookId),
       staleTime: Infinity,
     });
-    
-    // Prefetch первой страницы (если это PDF reader)
-    queryClient.prefetchQuery({
-      queryKey: queryKeys.pages.page(bookId, 1),
-      queryFn: () => bookApi.fetchBookPage(bookId, 1),
-      staleTime: Infinity,
-    });
+    // Не prefetch страницы - дать PDF viewer загружаться спокойно
   };
 };
 
@@ -122,28 +116,13 @@ export const useBookPage = (bookId: number, pageNumber: number) => {
 
 /**
  * Hook для ленивой загрузки страниц (текущая + соседние)
+ * ОТКЛЮЧЕН: Prefetch страниц замедляет загрузку на медленных серверах (Heroku)
  */
-export const usePrefetchPages = (bookId: number, currentPage: number) => {
-  const queryClient = useQueryClient();
-  
-  // Prefetch предыдущей и следующей страницы
-  const prefetchSurroundingPages = () => {
-    if (currentPage > 1) {
-      queryClient.prefetchQuery({
-        queryKey: queryKeys.pages.page(bookId, currentPage - 1),
-        queryFn: () => bookApi.fetchBookPage(bookId, currentPage - 1),
-        staleTime: Infinity,
-      });
-    }
-    
-    queryClient.prefetchQuery({
-      queryKey: queryKeys.pages.page(bookId, currentPage + 1),
-      queryFn: () => bookApi.fetchBookPage(bookId, currentPage + 1),
-      staleTime: Infinity,
-    });
+export const usePrefetchPages = () => {
+  // No-op hook для совместимости с существующим кодом
+  return () => {
+    // prefetch отключен для оптимизации производительности
   };
-  
-  return prefetchSurroundingPages;
 };
 
 // ==== UTILITY HOOKS ====

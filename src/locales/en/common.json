@@ -5,6 +5,23 @@
     "catalog": "Catalog",
     "contacts": "Contacts"
   },
+  "login": {
+    "title": "Welcome",
+    "subtitle": "Sign in to your account",
+    "emailLabel": "Email",
+    "emailPlaceholder": "student@su.edu.kg",
+    "passwordLabel": "Password",
+    "submit": "Sign In",
+    "loading": "Signing in...",
+    "backToHome": "Back to home",
+    "authRequired": "Please sign in to view and read books",
+    "errors": {
+      "emailRequired": "Enter your email",
+      "emailInvalid": "Invalid email format",
+      "passwordRequired": "Enter your password",
+      "general": "Authentication error. Check your email and password."
+    }
+  },
   "hero": {
     "title": "Digital Library",
     "subtitle": "The largest collection of e-books and scientific publications",
@@ -130,6 +147,19 @@
   },
   "profile": {
     "logout": "Logout",
+    "loading": "Loading profile...",
+    "retry": "Try Again",
+    "personalInfo": "Personal Information",
+    "fields": {
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "group": "Group",
+      "course": "Course",
+      "password": "Password"
+    },
+    "errors": {
+      "fetchFailed": "Failed to load profile data"
+    },
     "changePassword": "Change Password",
     "visitHistory": "Visit History",
     "recommendedBooks": "Recommended Textbooks",
@@ -197,7 +227,8 @@
         "tooShort": "Password must be at least 6 characters",
         "same": "New password must be different from current",
         "confirmRequired": "Confirm new password",
-        "mismatch": "Passwords do not match"
+        "mismatch": "Passwords do not match",
+        "general": "Error changing password"
       },
       "success": "Password successfully changed!",
       "changeButton": "Change Password",

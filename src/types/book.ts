@@ -13,9 +13,13 @@ export interface Book {
   category: number;
   category_name?: string;
   cover_image_url?: string;
+  cover_image?: string;
   year?: number;
   pdf_file_url?: string;
+  pdf_url?: string;
+  pdf_file?: string;
   total_pages?: number;
+  is_active?: boolean;
 }
 
 // Метаданные книги для ридера

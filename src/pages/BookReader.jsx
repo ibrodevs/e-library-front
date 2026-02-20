@@ -3,16 +3,15 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FaArrowLeft, FaSpinner, FaBook } from 'react-icons/fa';
 import PDFReader from '../components/PDFReader';
+import { getBooks } from '../api/books';
 
 const BookReader = () => {
   const { bookId } = useParams();
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -20,16 +19,10 @@ const BookReader = () => {
         setLoading(true);
         setError(null);
         
-        const currentLanguage = i18n.language;
-        // Получаем все книги и находим нужную по ID
-        const response = await fetch(`${API_BASE_URL}/books/?language=${currentLanguage}`);
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch books');
-        }
-        
-        const booksData = await response.json();
-        const books = Array.isArray(booksData) ? booksData : (booksData.value || booksData);
+        // Получаем книги с Heroku
+        const response = await getBooks();
+        const booksData = response.data;
+        const books = Array.isArray(booksData) ? booksData : (booksData.results || booksData.value || booksData);
         
         // Находим книгу по ID
         const foundBook = books.find(b => b.id.toString() === bookId);
@@ -50,7 +43,7 @@ const BookReader = () => {
     if (bookId) {
       fetchBook();
     }
-  }, [bookId, i18n.language, t, API_BASE_URL]);
+  }, [bookId, t]);
 
   const handleGoBack = () => {
     navigate(-1);
@@ -91,9 +84,10 @@ const BookReader = () => {
   }
 
   const pdfUrl = book.pdf_url || book.pdf_file;
+  const HEROKU_BASE = 'https://su-library-back-d2d8d21af2e4.herokuapp.com';
   const fullPdfUrl = pdfUrl?.startsWith('http') 
     ? pdfUrl 
-    : `${API_BASE_URL.replace('/api', '')}${pdfUrl}`;
+    : `${HEROKU_BASE}${pdfUrl}`;
 
   return (
     <div className="h-screen flex flex-col bg-gray-900">

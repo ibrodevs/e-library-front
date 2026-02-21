@@ -5,8 +5,8 @@ import { FaSearch, FaBook, FaFilter, FaBookOpen, FaChevronDown, FaSpinner, FaTim
 import { getBooks } from "../api/books";
 import { getCategories } from "../api/category";
 
-const LibraryComponent = () => {
-  const { t } = useTranslation();
+const Catalog = () => {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -434,4 +434,4 @@ const LibraryComponent = () => {
   );
 };
 
-export default LibraryComponent;
+export default Catalog;

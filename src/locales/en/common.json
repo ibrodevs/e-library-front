@@ -2,7 +2,25 @@
   "navbar": {
     "title": "SU e-library",
     "home": "Home",
+    "catalog": "Catalog",
     "contacts": "Contacts"
+  },
+  "login": {
+    "title": "Welcome",
+    "subtitle": "Sign in to your account",
+    "emailLabel": "Email",
+    "emailPlaceholder": "student@su.edu.kg",
+    "passwordLabel": "Password",
+    "submit": "Sign In",
+    "loading": "Signing in...",
+    "backToHome": "Back to home",
+    "authRequired": "Please sign in to view and read books",
+    "errors": {
+      "emailRequired": "Enter your email",
+      "emailInvalid": "Invalid email format",
+      "passwordRequired": "Enter your password",
+      "general": "Authentication error. Check your email and password."
+    }
   },
   "hero": {
     "title": "Digital Library",
@@ -126,5 +144,95 @@
       "notFound": "Book not found"
     },
     "copyright": "⚠️ Content is protected by copyright. Download is prohibited."
+  },
+  "profile": {
+    "logout": "Logout",
+    "loading": "Loading profile...",
+    "retry": "Try Again",
+    "personalInfo": "Personal Information",
+    "fields": {
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "group": "Group",
+      "course": "Course",
+      "password": "Password"
+    },
+    "errors": {
+      "fetchFailed": "Failed to load profile data"
+    },
+    "changePassword": "Change Password",
+    "visitHistory": "Visit History",
+    "recommendedBooks": "Recommended Textbooks",
+    "actions": {
+      "visit": "Library Visit",
+      "borrow": "Book Borrowed",
+      "return": "Book Returned"
+    },
+    "visitDescriptions": {
+      "readingRoom3": "Reading Room #3",
+      "computerLab": "Computer Lab"
+    },
+    "mockBooks": {
+      "cleanCode": {
+        "title": "Clean Code",
+        "author": "Robert Martin"
+      },
+      "algorithms": {
+        "title": "Algorithms. Construction and Analysis",
+        "author": "Thomas Cormen"
+      },
+      "javascript": {
+        "title": "JavaScript: The Definitive Guide",
+        "author": "David Flanagan"
+      },
+      "designPatterns": {
+        "title": "Design Patterns",
+        "author": "Erich Gamma"
+      },
+      "databases": {
+        "title": "Database Fundamentals"
+      }
+    },
+    "recommendedBooksData": {
+      "sicp": {
+        "title": "Structure and Interpretation of Computer Programs",
+        "author": "Harold Abelson",
+        "subject": "Programming"
+      },
+      "ai": {
+        "title": "Artificial Intelligence. A Modern Approach",
+        "author": "Stuart Russell",
+        "subject": "Artificial Intelligence"
+      },
+      "networks": {
+        "title": "Computer Networks",
+        "author": "Andrew Tanenbaum",
+        "subject": "Networks"
+      }
+    },
+    "passwordForm": {
+      "title": "Change Password",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm New Password",
+      "placeholders": {
+        "current": "Enter current password",
+        "new": "Minimum 6 characters",
+        "confirm": "Repeat new password"
+      },
+      "errors": {
+        "required": "Enter current password",
+        "incorrect": "Incorrect current password",
+        "newRequired": "Enter new password",
+        "tooShort": "Password must be at least 6 characters",
+        "same": "New password must be different from current",
+        "confirmRequired": "Confirm new password",
+        "mismatch": "Passwords do not match",
+        "general": "Error changing password"
+      },
+      "success": "Password successfully changed!",
+      "changeButton": "Change Password",
+      "saving": "Saving..."
+    }
   }
 }

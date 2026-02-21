@@ -2,7 +2,25 @@
   "navbar": {
     "title": "SU e-library",
     "home": "Главная",
+    "catalog": "Каталог",
     "contacts": "Контакты"
+  },
+  "login": {
+    "title": "Добро пожаловать",
+    "subtitle": "Войдите в личный кабинет",
+    "emailLabel": "Email",
+    "emailPlaceholder": "student@su.edu.kg",
+    "passwordLabel": "Пароль",
+    "submit": "Войти",
+    "loading": "Вход...",
+    "backToHome": "Вернуться на главную",
+    "authRequired": "Для просмотра и чтения книг необходимо войти в систему",
+    "errors": {
+      "emailRequired": "Введите email",
+      "emailInvalid": "Неверный формат email",
+      "passwordRequired": "Введите пароль",
+      "general": "Ошибка авторизации. Проверьте email и пароль."
+    }
   },
   "hero": {
     "title": "Цифровая Библиотека",
@@ -128,5 +146,95 @@
       "notFound": "Книга не найдена"
     },
     "copyright": "⚠️ Материалы защищены авторским правом. Скачивание запрещено."
+  },
+  "profile": {
+    "logout": "Выйти",
+    "loading": "Загрузка профиля...",
+    "retry": "Попробовать снова",
+    "personalInfo": "Личные данные",
+    "fields": {
+      "firstName": "Имя",
+      "lastName": "Фамилия",
+      "group": "Группа",
+      "course": "Курс",
+      "password": "Пароль"
+    },
+    "errors": {
+      "fetchFailed": "Не удалось загрузить данные профиля"
+    },
+    "changePassword": "Смена пароля",
+    "visitHistory": "История посещений",
+    "recommendedBooks": "Рекомендованные учебники",
+    "actions": {
+      "visit": "Посещение библиотеки",
+      "borrow": "Взятие книги",
+      "return": "Возврат книги"
+    },
+    "visitDescriptions": {
+      "readingRoom3": "Читальный зал №3",
+      "computerLab": "Компьютерный класс"
+    },
+    "mockBooks": {
+      "cleanCode": {
+        "title": "Чистый код",
+        "author": "Роберт Мартин"
+      },
+      "algorithms": {
+        "title": "Алгоритмы. Построение и анализ",
+        "author": "Томас Кормен"
+      },
+      "javascript": {
+        "title": "JavaScript: Подробное руководство",
+        "author": "Дэвид Флэнаган"
+      },
+      "designPatterns": {
+        "title": "Паттерны проектирования",
+        "author": "Эрих Гамма"
+      },
+      "databases": {
+        "title": "Основы баз данных"
+      }
+    },
+    "recommendedBooksData": {
+      "sicp": {
+        "title": "Структура и интерпретация компьютерных программ",
+        "author": "Харольд Абельсон",
+        "subject": "Программирование"
+      },
+      "ai": {
+        "title": "Искусственный интеллект. Современный подход",
+        "author": "Стюарт Рассел",
+        "subject": "Искусственный интеллект"
+      },
+      "networks": {
+        "title": "Компьютерные сети",
+        "author": "Эндрю Таненбаум",
+        "subject": "Сети"
+      }
+    },
+    "passwordForm": {
+      "title": "Смена пароля",
+      "currentPassword": "Текущий пароль",
+      "newPassword": "Новый пароль",
+      "confirmPassword": "Подтвердите новый пароль",
+      "placeholders": {
+        "current": "Введите текущий пароль",
+        "new": "Минимум 6 символов",
+        "confirm": "Повторите новый пароль"
+      },
+      "errors": {
+        "required": "Введите текущий пароль",
+        "incorrect": "Неверный текущий пароль",
+        "newRequired": "Введите новый пароль",
+        "tooShort": "Пароль должен быть не менее 6 символов",
+        "same": "Новый пароль должен отличаться от текущего",
+        "confirmRequired": "Подтвердите новый пароль",
+        "mismatch": "Пароли не совпадают",
+        "general": "Ошибка при смене пароля"
+      },
+      "success": "Пароль успешно изменён!",
+      "changeButton": "Изменить пароль",
+      "saving": "Сохранение..."
+    }
   }
 }

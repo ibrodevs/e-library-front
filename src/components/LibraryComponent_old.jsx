@@ -2,9 +2,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { FaSearch, FaBook, FaFilter, FaBookOpen, FaChevronDown, FaSpinner, FaTimes } from "react-icons/fa";
+import { getBooks } from "../api/books";
+import { getCategories } from "../api/category";
 
 const LibraryComponent = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -15,38 +17,28 @@ const LibraryComponent = () => {
   const [error, setError] = useState(null);
   const filterRef = useRef(null);
 
-  // Базовый URL API
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
-
-  // Загрузка данных с бэкенда
+  // Загрузка данных с бэкенда (Heroku)
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
         
-        const currentLanguage = i18n.language;
-        
-        const [booksResponse, categoriesResponse] = await Promise.all([
-          fetch(`${API_BASE_URL}/books/?language=${currentLanguage}`),
-          fetch(`${API_BASE_URL}/categories/?language=${currentLanguage}`)
-        ]);
+        // Используем готовые API функции которые берут с Heroku
+        const booksResponse = await getBooks();
+        const categoriesResponse = await getCategories();
 
-        if (!booksResponse.ok || !categoriesResponse.ok) {
-          throw new Error('Failed to fetch data');
-        }
+        // Извлекаем данные из ответов
+        let booksData = booksResponse.data;
+        let categoriesData = categoriesResponse.data;
 
-        const booksData = await booksResponse.json();
-        const categoriesData = await categoriesResponse.json();
-
-        // Извлекаем массивы из ответов API (если они завернуты в объект)
-        const books = Array.isArray(booksData) ? booksData : (booksData.value || booksData);
-        const categories = Array.isArray(categoriesData) ? categoriesData : (categoriesData.value || categoriesData);
+        // Обрабатываем разные форматы API ответов
+        const books = Array.isArray(booksData) ? booksData : (booksData.results || booksData.value || booksData);
+        const categories = Array.isArray(categoriesData) ? categoriesData : (categoriesData.results || categoriesData.value || categoriesData);
         
         setBooks(books);
         setCategories(categories);
       } catch (err) {
-        console.error('Error fetching data:', err);
         setError(t('library.errors.fetchFailed'));
       } finally {
         setLoading(false);
@@ -54,7 +46,7 @@ const LibraryComponent = () => {
     };
 
     fetchData();
-  }, [i18n.language, t]);
+  }, [t]);
 
   // Получаем текущую переведенную категорию
   const currentCategoryLabel = useMemo(() => {
@@ -67,14 +59,7 @@ const LibraryComponent = () => {
 
   // Фильтрация книг
   const filteredBooks = useMemo(() => {
-    console.log('🔍 Starting filtration...');
-    console.log('📖 Total books:', books.length);
-    console.log('🎯 Selected category:', selectedCategory, typeof selectedCategory);
-    console.log('🔎 Search query:', searchQuery);
-
     const result = books.filter(book => {
-      console.log('📖 Checking book:', book.title, 'Category:', book.category, typeof book.category);
-      
       const bookTitle = book.title || '';
       const bookAuthor = book.author || '';
       const bookDescription = book.description || '';
@@ -87,31 +72,19 @@ const LibraryComponent = () => {
       
       if (selectedCategory === "all") {
         matchesCategory = true;
-        console.log('✅ Matches "all" category');
       } else {
         // Получаем ID категории книги - это поле category в API
         const bookCategoryId = book.category;
         
         // Сравниваем как строки для единообразия
         matchesCategory = bookCategoryId?.toString() === selectedCategory;
-        
-        console.log('🔍 Category match check:', {
-          bookTitle: book.title,
-          bookCategoryId,
-          selectedCategory,
-          bookCategoryString: bookCategoryId?.toString(),
-          matches: matchesCategory
-        });
       }
       
       const passes = matchesSearch && matchesCategory;
-      console.log('✅ Book passes filter:', book.title, passes);
       
       return passes;
     });
 
-    console.log('✅ Filtered books result:', result.length, 'books');
-    console.log('📋 Filtered books titles:', result.map(b => b.title));
     return result;
   }, [books, searchQuery, selectedCategory]);
 
@@ -138,15 +111,13 @@ const LibraryComponent = () => {
   };
 
   const handleRead = (pdfUrl) => {
-    console.log('PDF URL:', pdfUrl);
-    
     if (pdfUrl && pdfUrl.startsWith('http')) {
       window.open(pdfUrl, '_blank', 'noopener,noreferrer');
     } else if (pdfUrl) {
-      const fullUrl = `${API_BASE_URL.replace('/api', '')}${pdfUrl}`;
+      const HEROKU_BASE = 'https://su-library-back-d2d8d21af2e4.herokuapp.com';
+      const fullUrl = `${HEROKU_BASE}${pdfUrl}`;
       window.open(fullUrl, '_blank', 'noopener,noreferrer');
     } else {
-      console.error('PDF URL not available');
       alert('PDF файл недоступен');
     }
   };
@@ -328,7 +299,6 @@ const LibraryComponent = () => {
                       {/* Опция "Все" */}
                       <button
                         onClick={() => {
-                          console.log('🎯 "All" category clicked');
                           setSelectedCategory("all");
                           setIsFilterOpen(false);
                         }}
@@ -351,7 +321,6 @@ const LibraryComponent = () => {
                         <button
                           key={category.id}
                           onClick={() => {
-                            console.log('🎯 Category clicked:', category.id, category.name, typeof category.id);
                             setSelectedCategory(category.id.toString());
                             setIsFilterOpen(false);
                           }}
@@ -388,7 +357,6 @@ const LibraryComponent = () => {
               </div>
               <button
                 onClick={() => {
-                  console.log('🔄 Reset button clicked, setting category to "all"');
                   setSelectedCategory("all");
                 }}
                 className="ml-auto px-3 py-1 bg-red-600/20 hover:bg-red-600/30 text-red-400 hover:text-red-300 rounded-lg text-sm font-medium transition-all duration-200 border border-red-500/30 hover:border-red-500/50 flex items-center gap-2"

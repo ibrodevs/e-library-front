@@ -2,7 +2,25 @@
   "navbar": {
     "title": "SU e-library",
     "home": "Башкы бет",
+    "catalog": "Каталог",
     "contacts": "Байланыш"
+  },
+  "login": {
+    "title": "Кош келиңиз",
+    "subtitle": "Жеке кабинетке кириңиз",
+    "emailLabel": "Email",
+    "emailPlaceholder": "student@su.edu.kg",
+    "passwordLabel": "Сырсөз",
+    "submit": "Кирүү",
+    "loading": "Кирүүдө...",
+    "backToHome": "Башкы бетке кайтуу",
+    "authRequired": "Китептерди көрүү жана окуу үчүн системага кириңиз",
+    "errors": {
+      "emailRequired": "Email киргизиңиз",
+      "emailInvalid": "Email форматы туура эмес",
+      "passwordRequired": "Сырсөздү киргизиңиз",
+      "general": "Авторизация катасы. Email жана сырсөздү текшериңиз."
+    }
   },
    "hero": {
     "title": "Санарип Китепкана",
@@ -128,5 +146,95 @@
       "notFound": "Китеп табылган жок"
     },
     "copyright": "⚠️ Материалдар автордук укук менен корголгон. Жүктөп алуу тыюу салынган."
+  },
+  "profile": {
+    "logout": "Чыгуу",
+    "loading": "Профиль жүктөлүүдө...",
+    "retry": "Кайра аракет кылуу",
+    "personalInfo": "Жеке маалымат",
+    "fields": {
+      "firstName": "Аты",
+      "lastName": "Фамилиясы",
+      "group": "Группа",
+      "course": "Курс",
+      "password": "Сырсөз"
+    },
+    "errors": {
+      "fetchFailed": "Профиль маалыматын жүктөө ишке ашкан жок"
+    },
+    "changePassword": "Сырсөзди өзгөртүү",
+    "visitHistory": "Баруулардын тарыхы",
+    "recommendedBooks": "Сунушталган окуу куралдары",
+    "actions": {
+      "visit": "Китепканага баруу",
+      "borrow": "Китеп алуу",
+      "return": "Китеп кайтаруу"
+    },
+    "visitDescriptions": {
+      "readingRoom3": "Окуу залы №3",
+      "computerLab": "Компьютердик класс"
+    },
+    "mockBooks": {
+      "cleanCode": {
+        "title": "Таза код",
+        "author": "Роберт Мартин"
+      },
+      "algorithms": {
+        "title": "Алгоритмдер. Куруу жана талдоо",
+        "author": "Томас Кормен"
+      },
+      "javascript": {
+        "title": "JavaScript: Толук колдонмо",
+        "author": "Дэвид Флэнаган"
+      },
+      "designPatterns": {
+        "title": "Долбоорлоо үлгүлөрү",
+        "author": "Эрих Гамма"
+      },
+      "databases": {
+        "title": "Маалымат базаларынын негиздери"
+      }
+    },
+    "recommendedBooksData": {
+      "sicp": {
+        "title": "Компьютердик программалардын түзүлүшү жана интерпретациясы",
+        "author": "Харольд Абельсон",
+        "subject": "Программалоо"
+      },
+      "ai": {
+        "title": "Жасалма интеллект. Заманбап мамиле",
+        "author": "Стюарт Рассел",
+        "subject": "Жасалма интеллект"
+      },
+      "networks": {
+        "title": "Компьютердик тармактар",
+        "author": "Эндрю Таненбаум",
+        "subject": "Тармактар"
+      }
+    },
+    "passwordForm": {
+      "title": "Сырсөздү өзгөртүү",
+      "currentPassword": "Азыркы сырсөз",
+      "newPassword": "Жаңы сырсөз",
+      "confirmPassword": "Жаңы сырсөздү тастыктаңыз",
+      "placeholders": {
+        "current": "Азыркы сырсөздү киргизиңиз",
+        "new": "Кеминде 6 символ",
+        "confirm": "Жаңы сырсөздү кайталаңыз"
+      },
+      "errors": {
+        "required": "Азыркы сырсөздү киргизиңиз",
+        "incorrect": "Туура эмес азыркы сырсөз",
+        "newRequired": "Жаңы сырсөздү киргизиңиз",
+        "tooShort": "Сырсөз кеминде 6 символ болушу керек",
+        "same": "Жаңы сырсөз азыркыдан башка болушу керек",
+        "confirmRequired": "Жаңы сырсөздү тастыктаңыз",
+        "mismatch": "Сырсөздөр дал келбейт",
+        "general": "Сырсөздү өзгөртүүдө ката"
+      },
+      "success": "Сырсөз өзгөртүлдү!",
+      "changeButton": "Сырсөздү өзгөртүү",
+      "saving": "Сактоодо..."
+    }
   }
 }

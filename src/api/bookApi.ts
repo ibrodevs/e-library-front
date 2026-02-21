@@ -68,7 +68,6 @@ export const fetchBookById = async (bookId: number): Promise<Book> => {
     return normalizeBook(book);
   } catch (error: any) {
     if (error.response?.status === 404 || error.message?.includes('not found')) {
-      console.warn(`Book with ID ${bookId} not found on Heroku`);
       throw new Error(`Книга с ID ${bookId} не найдена`);
     }
     throw error;
@@ -123,7 +122,6 @@ export const fetchBookPage = async (
     };
   } catch (error: any) {
     if (error.response?.status === 404) {
-      console.warn(`Page ${pageNumber} of book ${bookId} not found`);
       throw new Error(`Страница ${pageNumber} книги ${bookId} не найдена`);
     }
     throw error;

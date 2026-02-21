@@ -71,7 +71,6 @@ const PDFReader = ({ pdfUrl }) => {
   };
 
   const onDocumentLoadError = (error) => {
-    console.error('Error loading PDF:', error);
     setError('Не удалось загрузить PDF файл');
     setLoading(false);
   };

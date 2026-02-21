@@ -39,7 +39,6 @@ const LibraryComponent = () => {
         setBooks(books);
         setCategories(categories);
       } catch (err) {
-        console.error('Error fetching data:', err);
         setError(t('library.errors.fetchFailed'));
       } finally {
         setLoading(false);
@@ -60,14 +59,7 @@ const LibraryComponent = () => {
 
   // Фильтрация книг
   const filteredBooks = useMemo(() => {
-    console.log('🔍 Starting filtration...');
-    console.log('📖 Total books:', books.length);
-    console.log('🎯 Selected category:', selectedCategory, typeof selectedCategory);
-    console.log('🔎 Search query:', searchQuery);
-
     const result = books.filter(book => {
-      console.log('📖 Checking book:', book.title, 'Category:', book.category, typeof book.category);
-      
       const bookTitle = book.title || '';
       const bookAuthor = book.author || '';
       const bookDescription = book.description || '';
@@ -80,31 +72,19 @@ const LibraryComponent = () => {
       
       if (selectedCategory === "all") {
         matchesCategory = true;
-        console.log('✅ Matches "all" category');
       } else {
         // Получаем ID категории книги - это поле category в API
         const bookCategoryId = book.category;
         
         // Сравниваем как строки для единообразия
         matchesCategory = bookCategoryId?.toString() === selectedCategory;
-        
-        console.log('🔍 Category match check:', {
-          bookTitle: book.title,
-          bookCategoryId,
-          selectedCategory,
-          bookCategoryString: bookCategoryId?.toString(),
-          matches: matchesCategory
-        });
       }
       
       const passes = matchesSearch && matchesCategory;
-      console.log('✅ Book passes filter:', book.title, passes);
       
       return passes;
     });
 
-    console.log('✅ Filtered books result:', result.length, 'books');
-    console.log('📋 Filtered books titles:', result.map(b => b.title));
     return result;
   }, [books, searchQuery, selectedCategory]);
 
@@ -131,8 +111,6 @@ const LibraryComponent = () => {
   };
 
   const handleRead = (pdfUrl) => {
-    console.log('PDF URL:', pdfUrl);
-    
     if (pdfUrl && pdfUrl.startsWith('http')) {
       window.open(pdfUrl, '_blank', 'noopener,noreferrer');
     } else if (pdfUrl) {
@@ -140,7 +118,6 @@ const LibraryComponent = () => {
       const fullUrl = `${HEROKU_BASE}${pdfUrl}`;
       window.open(fullUrl, '_blank', 'noopener,noreferrer');
     } else {
-      console.error('PDF URL not available');
       alert('PDF файл недоступен');
     }
   };
@@ -322,7 +299,6 @@ const LibraryComponent = () => {
                       {/* Опция "Все" */}
                       <button
                         onClick={() => {
-                          console.log('🎯 "All" category clicked');
                           setSelectedCategory("all");
                           setIsFilterOpen(false);
                         }}
@@ -345,7 +321,6 @@ const LibraryComponent = () => {
                         <button
                           key={category.id}
                           onClick={() => {
-                            console.log('🎯 Category clicked:', category.id, category.name, typeof category.id);
                             setSelectedCategory(category.id.toString());
                             setIsFilterOpen(false);
                           }}
@@ -382,7 +357,6 @@ const LibraryComponent = () => {
               </div>
               <button
                 onClick={() => {
-                  console.log('🔄 Reset button clicked, setting category to "all"');
                   setSelectedCategory("all");
                 }}
                 className="ml-auto px-3 py-1 bg-red-600/20 hover:bg-red-600/30 text-red-400 hover:text-red-300 rounded-lg text-sm font-medium transition-all duration-200 border border-red-500/30 hover:border-red-500/50 flex items-center gap-2"

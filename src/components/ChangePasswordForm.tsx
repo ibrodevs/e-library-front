@@ -111,12 +111,6 @@ const ChangePasswordForm: React.FC = () => {
         setSuccessMessage('');
       }, 5000);
     } catch (error: any) {
-      console.error('Change password error:', {
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        message: error.message,
-      });
-      
       let errorMessage = t('profile.passwordForm.errors.general');
       
       // Первоприоритетно проверяем специфические ошибки авторизации

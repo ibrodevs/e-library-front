@@ -40,7 +40,6 @@ const LibraryComponent = () => {
         setBooks(books);
         setCategories(categories);
       } catch (err) {
-        console.error('Error fetching data:', err);
         setError(t('library.errors.fetchFailed'));
       } finally {
         setLoading(false);
@@ -278,7 +277,6 @@ const LibraryComponent = () => {
               </div>
               <button
                 onClick={() => {
-                  console.log('🔄 Reset button clicked, setting category to "all"');
                   setSelectedCategory("all");
                 }}
                 className="ml-auto px-3 py-1 bg-red-600/20 hover:bg-red-600/30 text-red-400 hover:text-red-300 rounded-lg text-sm font-medium transition-all duration-200 border border-red-500/30 hover:border-red-500/50 flex items-center gap-2"

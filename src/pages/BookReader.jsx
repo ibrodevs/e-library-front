@@ -33,7 +33,6 @@ const BookReader = () => {
         
         setBook(foundBook);
       } catch (err) {
-        console.error('Error fetching book:', err);
         setError(err.message === 'Book not found' ? t('reader.errors.notFound') : t('reader.errors.fetchFailed'));
       } finally {
         setLoading(false);

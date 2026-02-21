@@ -4,9 +4,6 @@ import axios from 'axios';
 const API_BASE = 'https://su-library-back-d2d8d21af2e4.herokuapp.com/api';
 const API_URL = `${API_BASE}/books`;
 
-// Debug: Log API URL
-console.log('Books API URL:', API_URL);
-
 export const getBooks = (categoryIds = []) => {
   const params = {};
   if (categoryIds.length > 0) {

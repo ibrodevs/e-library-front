@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Document, Page, pdfjs } from 'react-pdf';
-import { FaArrowLeft, FaChevronLeft, FaChevronRight, FaExpand, FaCompress } from 'react-icons/fa';
+import { FaArrowLeft, FaChevronLeft, FaChevronRight, FaExpand, FaCompress, FaSearchPlus, FaSearchMinus } from 'react-icons/fa';
 import { useBook, usePrefetchPages } from '../hooks/useBookQueries';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
@@ -19,6 +19,10 @@ const BookReaderOptimized: React.FC = () => {
   const [totalPages, setTotalPages] = useState<number>(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [pdfLoadProgress, setPdfLoadProgress] = useState(0);
+  const [scale, setScale] = useState(1.0);
+
+  const zoomIn = () => setScale(prev => Math.min(prev + 0.2, 3.0));
+  const zoomOut = () => setScale(prev => Math.max(prev - 0.2, 0.5));
 
   // Загружаем полные данные книги
   const { data: book, isLoading, error } = useBook(Number(bookId));
@@ -68,11 +72,13 @@ const BookReaderOptimized: React.FC = () => {
       if (e.key === 'ArrowRight') goToNextPage();
       if (e.key === 'f' || e.key === 'F') toggleFullscreen();
       if (e.key === 'Escape' && isFullscreen) toggleFullscreen();
+      if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomIn(); }
+      if (e.key === '-') { e.preventDefault(); zoomOut(); }
     };
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [currentPage, totalPages, isFullscreen]);
+}, [currentPage, totalPages, isFullscreen, scale]);
 
   // Показываем мгновенный UI с данными книги
   const displayBook = book;
@@ -169,13 +175,32 @@ const BookReaderOptimized: React.FC = () => {
           </button>
         </div>
 
-        {/* Правая часть - полноэкранный режим */}
-        <button
-          onClick={toggleFullscreen}
-          className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors hidden md:block"
-        >
-          {isFullscreen ? <FaCompress /> : <FaExpand />}
-        </button>
+        {/* Правая часть - зум + полноэкранный режим */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={zoomOut}
+            disabled={scale <= 0.5}
+            className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Уменьшить (−)"
+          >
+            <FaSearchMinus />
+          </button>
+          <span className="text-sm text-gray-400 w-12 text-center">{Math.round(scale * 100)}%</span>
+          <button
+            onClick={zoomIn}
+            disabled={scale >= 3.0}
+            className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Увеличить (+)"
+          >
+            <FaSearchPlus />
+          </button>
+          <button
+            onClick={toggleFullscreen}
+            className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors hidden md:block"
+          >
+            {isFullscreen ? <FaCompress /> : <FaExpand />}
+          </button>
+        </div>
       </div>
 
       {/* Основная область: PDF */}
@@ -212,7 +237,7 @@ const BookReaderOptimized: React.FC = () => {
               renderTextLayer={true}
               renderAnnotationLayer={true}
               className="shadow-2xl"
-              width={Math.min(window.innerWidth - 32, 1200)}
+              width={Math.min(window.innerWidth - 32, 1200) * scale}
             />
           </Document>
         ) : (

@@ -22,14 +22,30 @@ export const useBooks = (params?: BookQueryParams) => {
 
 /**
  * Hook для получения одной книги по ID
+ * Использует кэш из каталога если доступен — не делает лишний запрос
  * staleTime: Infinity - данные книги не меняются
  */
 export const useBook = (bookId: number) => {
+  const queryClient = useQueryClient();
+
+  // Берём данные из кэша списка (если перешли из каталога)
+  const cachedBook = (() => {
+    const booksQueries = queryClient.getQueriesData<Book[]>({ queryKey: queryKeys.books.lists() });
+    for (const [, books] of booksQueries) {
+      if (books) {
+        const found = books.find((b) => b.id === bookId);
+        if (found) return found;
+      }
+    }
+    return undefined;
+  })();
+
   return useQuery({
     queryKey: queryKeys.books.detail(bookId),
     queryFn: () => bookApi.fetchBookById(bookId),
-    staleTime: Infinity, // Данные книги не меняются
+    staleTime: Infinity,
     enabled: !!bookId,
+    initialData: cachedBook,
   });
 };
 

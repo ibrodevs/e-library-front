@@ -135,6 +135,7 @@
   },
   "reader": {
     "loading": "Loading book...",
+    "back": "Back",
     "actions": {
       "goBack": "Go Back"
     },

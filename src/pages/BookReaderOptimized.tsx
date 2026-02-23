@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { FaArrowLeft, FaChevronLeft, FaChevronRight, FaExpand, FaCompress } from 'react-icons/fa';
 import { useBook, usePrefetchPages } from '../hooks/useBookQueries';
-import { PdfLoadingIndicator } from '../components/skeletons/BookSkeleton';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 
@@ -101,7 +100,14 @@ const BookReaderOptimized: React.FC = () => {
 
   // Лоадинг экран (только если нет initial data)
   if (isLoading && !displayBook) {
-    return <PdfLoadingIndicator progress={pdfLoadProgress} />;
+    return (
+      <div className="h-screen bg-gray-900 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-white">
+          <div className="w-16 h-16 border-4 border-blue-500/30 border-t-blue-400 rounded-full animate-spin" />
+          <p className="text-gray-400 text-sm">Загрузка книги...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -172,35 +178,22 @@ const BookReaderOptimized: React.FC = () => {
         </button>
       </div>
 
-      {/* Основная область: PDF + оверлей с обложкой пока грузится */}
+      {/* Основная область: PDF */}
       <div className="flex-1 overflow-auto bg-gray-900 relative flex items-center justify-center p-4">
-        {/* Оверлей с обложкой — показывается пока PDF не загружен */}
-        {displayBook?.cover_image_url && pdfLoadProgress < 100 && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800 p-8">
-            <div className="max-w-md w-full">
-              <div className="aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl mb-6 max-h-64 mx-auto">
-                <img
-                  src={displayBook.cover_image_url}
-                  alt={displayBook.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="text-center">
-                <h2 className="text-2xl font-bold mb-2">{displayBook.title}</h2>
-                <p className="text-gray-400 mb-4">{displayBook.author}</p>
-                <PdfLoadingIndicator progress={pdfLoadProgress} />
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* PDF Viewer */}
         {displayBook?.pdf_file_url ? (
           <Document
             file={displayBook.pdf_file_url}
             onLoadSuccess={onDocumentLoadSuccess}
             onLoadProgress={onLoadProgress}
-            loading={null}
+            loading={
+              <div className="flex flex-col items-center justify-center gap-4 text-white py-20">
+                <div className="w-16 h-16 border-4 border-blue-500/30 border-t-blue-400 rounded-full animate-spin" />
+                <p className="text-gray-400 text-sm">
+                  {pdfLoadProgress > 0 ? `Загрузка... ${pdfLoadProgress}%` : 'Загрузка книги...'}
+                </p>
+              </div>
+            }
             error={
               <div className="text-center text-red-400">
                 <p className="mb-4">Ошибка загрузки PDF</p>

@@ -47,30 +47,33 @@ export const fetchBooks = async (params: BookQueryParams = {}): Promise<Book[]> 
  * Получить одну книгу по ID
  */
 export const fetchBookById = async (bookId: number): Promise<Book> => {
+  // Сначала пробуем прямой эндпоинт /books/{id}/
   try {
-    // Heroku API поддерживает параметр ?id вместо /{id}/
-    const { data } = await bookApiClient.get<BooksResponse>('/books/', { 
-      params: { id: bookId } 
-    });
-    
-    let books: Book[] = [];
-    if (Array.isArray(data)) {
-      books = data;
-    } else {
-      books = data.results || data.data || data.value || [];
+    const { data } = await bookApiClient.get<Book>(`/books/${bookId}/`);
+    return normalizeBook(data);
+  } catch (directError: any) {
+    // Если прямой эндпоинт не работает — фоллбек: загружаем весь список
+    try {
+      const { data } = await bookApiClient.get<BooksResponse>('/books/', {
+        params: { id: bookId },
+      });
+
+      let books: Book[] = [];
+      if (Array.isArray(data)) {
+        books = data;
+      } else {
+        books = data.results || data.data || data.value || [];
+      }
+
+      const book = books.find((b) => b.id === bookId);
+      if (!book) throw new Error(`Book with ID ${bookId} not found`);
+      return normalizeBook(book);
+    } catch (error: any) {
+      if (error.response?.status === 404 || error.message?.includes('not found')) {
+        throw new Error(`Книга с ID ${bookId} не найдена`);
+      }
+      throw error;
     }
-    
-    const book = books.find(b => b.id === bookId);
-    if (!book) {
-      throw new Error(`Book with ID ${bookId} not found`);
-    }
-    
-    return normalizeBook(book);
-  } catch (error: any) {
-    if (error.response?.status === 404 || error.message?.includes('not found')) {
-      throw new Error(`Книга с ID ${bookId} не найдена`);
-    }
-    throw error;
   }
 };
 

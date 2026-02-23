@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Document, Page, pdfjs } from 'react-pdf';
-import { FaArrowLeft, FaChevronLeft, FaChevronRight, FaExpand, FaCompress, FaSearchPlus, FaSearchMinus } from 'react-icons/fa';
+import { FaArrowLeft, FaChevronLeft, FaChevronRight, FaExpand, FaCompress, FaSearchPlus, FaSearchMinus, FaSearch, FaTimes } from 'react-icons/fa';
 import { useBook, usePrefetchPages } from '../hooks/useBookQueries';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
@@ -21,14 +21,93 @@ const BookReaderOptimized: React.FC = () => {
   const [pdfLoadProgress, setPdfLoadProgress] = useState(0);
   const [scale, setScale] = useState(1.0);
 
+  // === Поиск ===
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Array<{ page: number; context: string }>>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [highlightText, setHighlightText] = useState('');
+  const [activeResultIndex, setActiveResultIndex] = useState<number>(-1);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
   const zoomIn = () => setScale(prev => Math.min(prev + 0.2, 3.0));
   const zoomOut = () => setScale(prev => Math.max(prev - 0.2, 0.5));
 
   // Загружаем полные данные книги
   const { data: book, isLoading, error } = useBook(Number(bookId));
-  
+
   // Prefetch для оптимизации (отключен в текущей реализации)
   usePrefetchPages();
+
+  // Поиск по тексту всех страниц PDF
+  const searchInPDF = useCallback(async (query: string) => {
+    if (!query.trim() || !book?.pdf_file_url) return;
+    setIsSearching(true);
+    setSearchResults([]);
+    setActiveResultIndex(-1);
+    try {
+      const loadingTask = pdfjs.getDocument(book.pdf_file_url);
+      const pdf = await loadingTask.promise;
+      const results: Array<{ page: number; context: string }> = [];
+      const lowerQuery = query.toLowerCase();
+
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = (textContent.items as any[]).map((item) => item.str).join(' ');
+        const lowerText = pageText.toLowerCase();
+
+        let idx = 0;
+        while ((idx = lowerText.indexOf(lowerQuery, idx)) !== -1) {
+          const start = Math.max(0, idx - 60);
+          const end = Math.min(pageText.length, idx + lowerQuery.length + 60);
+          const context =
+            (start > 0 ? '…' : '') +
+            pageText.slice(start, end) +
+            (end < pageText.length ? '…' : '');
+          results.push({ page: i, context });
+          idx += lowerQuery.length;
+          if (results.filter(r => r.page === i).length >= 3) break; // макс 3 совпадения на стр
+        }
+      }
+
+      setSearchResults(results);
+      setHighlightText(query);
+    } catch (e) {
+      console.error('Ошибка поиска:', e);
+    } finally {
+      setIsSearching(false);
+    }
+  }, [book?.pdf_file_url]);
+
+  // Переход к результату
+  const goToResult = (result: { page: number }, index: number) => {
+    setCurrentPage(result.page);
+    setActiveResultIndex(index);
+  };
+
+  // Рендерер текстового слоя — подсвечивает совпадения
+  const customTextRenderer = useCallback(
+    ({ str }: { str: string }) => {
+      if (!highlightText) return str;
+      const escaped = highlightText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`(${escaped})`, 'gi');
+      return str.replace(
+        regex,
+        '<mark style="background:#FBBF24;color:#000;border-radius:2px;padding:0 1px">$1</mark>'
+      );
+    },
+    [highlightText]
+  );
+
+  // Открыть/закрыть панель поиска
+  const toggleSearch = () => {
+    setShowSearch(prev => {
+      if (!prev) setTimeout(() => searchInputRef.current?.focus(), 50);
+      else { setHighlightText(''); setSearchResults([]); setSearchQuery(''); }
+      return !prev;
+    });
+  };
 
   // Обработка успешной загрузки PDF документа
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
@@ -72,13 +151,15 @@ const BookReaderOptimized: React.FC = () => {
       if (e.key === 'ArrowRight') goToNextPage();
       if (e.key === 'f' || e.key === 'F') toggleFullscreen();
       if (e.key === 'Escape' && isFullscreen) toggleFullscreen();
+      if (e.key === 'Escape' && showSearch) toggleSearch();
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') { e.preventDefault(); toggleSearch(); }
       if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomIn(); }
       if (e.key === '-') { e.preventDefault(); zoomOut(); }
     };
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-}, [currentPage, totalPages, isFullscreen, scale]);
+}, [currentPage, totalPages, isFullscreen, scale, showSearch]);
 
   // Показываем мгновенный UI с данными книги
   const displayBook = book;
@@ -175,8 +256,15 @@ const BookReaderOptimized: React.FC = () => {
           </button>
         </div>
 
-        {/* Правая часть - зум + полноэкранный режим */}
+        {/* Правая часть - поиск + зум + полноэкранный режим */}
         <div className="flex items-center gap-2">
+          <button
+            onClick={toggleSearch}
+            className={`p-2 rounded-lg transition-colors ${showSearch ? 'bg-blue-600 text-white' : 'bg-gray-800 hover:bg-gray-700'}`}
+            title="Поиск по книге (Ctrl+F)"
+          >
+            <FaSearch />
+          </button>
           <button
             onClick={zoomOut}
             disabled={scale <= 0.5}
@@ -202,6 +290,71 @@ const BookReaderOptimized: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Панель поиска */}
+      {showSearch && (
+        <div className="bg-gray-800 border-b border-gray-700 flex flex-col" style={{ maxHeight: '360px' }}>
+          {/* Строка ввода */}
+          <div className="flex items-center gap-2 px-4 py-3">
+            <div className="flex-1 flex items-center gap-2 bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 focus-within:border-blue-500 transition-colors">
+              <FaSearch className="text-gray-400 flex-shrink-0" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                placeholder="Введите слово для поиска..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') searchInPDF(searchQuery); }}
+                className="flex-1 bg-transparent text-white placeholder-gray-500 outline-none text-sm"
+              />
+              {searchQuery && (
+                <button onClick={() => { setSearchQuery(''); setSearchResults([]); setHighlightText(''); }} className="text-gray-500 hover:text-white">
+                  <FaTimes size={12} />
+                </button>
+              )}
+            </div>
+            <button
+              onClick={() => searchInPDF(searchQuery)}
+              disabled={isSearching || !searchQuery.trim()}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-sm text-white transition-colors whitespace-nowrap"
+            >
+              {isSearching ? 'Поиск...' : 'Найти'}
+            </button>
+            <button onClick={toggleSearch} className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-gray-400 hover:text-white transition-colors">
+              <FaTimes />
+            </button>
+          </div>
+
+          {/* Результаты */}
+          {searchResults.length > 0 && (
+            <div className="overflow-y-auto px-4 pb-3" style={{ maxHeight: '260px' }}>
+              <p className="text-xs text-gray-400 mb-2">
+                Найдено совпадений: <span className="text-blue-400 font-semibold">{searchResults.length}</span>
+              </p>
+              <div className="flex flex-col gap-1">
+                {searchResults.map((result, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => goToResult(result, idx)}
+                    className={`text-left px-3 py-2 rounded-lg transition-colors text-sm ${
+                      activeResultIndex === idx
+                        ? 'bg-blue-600/40 border border-blue-500'
+                        : 'bg-gray-900/60 hover:bg-gray-700 border border-transparent'
+                    }`}
+                  >
+                    <span className="text-blue-400 font-semibold mr-2">Стр. {result.page}</span>
+                    <span className="text-gray-300">{result.context}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {!isSearching && searchResults.length === 0 && highlightText && (
+            <p className="px-4 pb-3 text-sm text-gray-500">Ничего не найдено по запросу «{highlightText}»</p>
+          )}
+        </div>
+      )}
 
       {/* Основная область: PDF */}
       <div className="flex-1 overflow-auto bg-gray-900 relative flex items-center justify-center p-4">
@@ -236,6 +389,7 @@ const BookReaderOptimized: React.FC = () => {
               pageNumber={currentPage}
               renderTextLayer={true}
               renderAnnotationLayer={true}
+              customTextRenderer={customTextRenderer}
               className="shadow-2xl"
               width={Math.min(window.innerWidth - 32, 1200) * scale}
             />

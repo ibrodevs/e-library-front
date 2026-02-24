@@ -418,6 +418,13 @@ const BookReaderOptimized: React.FC = () => {
           />
         </div>
       )}
+
+      {/* Футер с защитой авторских прав */}
+      <div className="bg-gray-950/80 backdrop-blur-sm border-t border-gray-800 py-3 px-6 select-none">
+        <p className="text-center text-gray-600 text-xs leading-relaxed">
+          {t('reader.copyright')}
+        </p>
+      </div>
     </div>
   );
 };

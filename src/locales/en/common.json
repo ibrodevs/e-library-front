@@ -144,7 +144,7 @@
       "fetchFailed": "Failed to load book",
       "notFound": "Book not found"
     },
-    "copyright": "⚠️ Content is protected by copyright. Download is prohibited."
+    "copyright": "🔒 Protected by copyright. Copying and distribution are prohibited."
   },
   "profile": {
     "logout": "Logout",

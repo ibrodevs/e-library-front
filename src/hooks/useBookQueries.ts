@@ -16,7 +16,7 @@ export const useBooks = (params?: BookQueryParams) => {
   return useQuery({
     queryKey: queryKeys.books.list({ ...params, language }),
     queryFn: () => bookApi.fetchBooks({ ...params, language }),
-    staleTime: 1000 * 60 * 5, // 5 минут - книги редко меняются
+    staleTime: 1000 * 60 * 60 * 24, // 24 часа — совпадает с localStorage TTL
   });
 };
 
@@ -112,7 +112,7 @@ export const useCategories = (params?: BookQueryParams) => {
   return useQuery({
     queryKey: queryKeys.categories.list({ ...params, language }),
     queryFn: () => bookApi.fetchCategories({ ...params, language }),
-    staleTime: 1000 * 60 * 10, // 10 минут - категории редко меняются
+    staleTime: 1000 * 60 * 60 * 24, // 24 часа — совпадает с localStorage TTL
   });
 };
 

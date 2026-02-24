@@ -17,6 +17,32 @@ const bookApiClient = axios.create({
   },
 });
 
+// ==== ЛОКАЛЬНЫЙ КЭШ (localStorage) ====
+const CACHE_TTL = 1000 * 60 * 60 * 24; // 24 часа
+
+function cacheGet<T>(key: string): T | null {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const { data, ts } = JSON.parse(raw);
+    if (Date.now() - ts > CACHE_TTL) {
+      localStorage.removeItem(key);
+      return null;
+    }
+    return data as T;
+  } catch {
+    return null;
+  }
+}
+
+function cacheSet(key: string, data: unknown): void {
+  try {
+    localStorage.setItem(key, JSON.stringify({ data, ts: Date.now() }));
+  } catch {
+    // localStorage может быть переполнен — игнорируем
+  }
+}
+
 // ==== BOOKS API ====
 
 /** Нормализует поля книги — API может возвращать pdf_url или pdf_file вместо pdf_file_url */
@@ -30,6 +56,12 @@ const normalizeBook = (book: Book): Book => ({
  * Получить список всех книг с фильтрацией
  */
 export const fetchBooks = async (params: BookQueryParams = {}): Promise<Book[]> => {
+  const cacheKey = `books_${JSON.stringify(params)}`;
+
+  // Возвращаем кэш мгновенно если он свежий
+  const cached = cacheGet<Book[]>(cacheKey);
+  if (cached) return cached;
+
   const { data } = await bookApiClient.get<BooksResponse>('/books/', { params });
   
   // Обрабатываем разные форматы ответа API
@@ -40,17 +72,28 @@ export const fetchBooks = async (params: BookQueryParams = {}): Promise<Book[]> 
     books = data.results || data.data || data.value || [];
   }
   
-  return books.map(normalizeBook);
+  const result = books.map(normalizeBook);
+  cacheSet(cacheKey, result);
+  return result;
 };
 
 /**
  * Получить одну книгу по ID
+ * Использует кэш из каталога если доступен — не делает лишний запрос
+ * staleTime: Infinity - данные книги не меняются
  */
 export const fetchBookById = async (bookId: number): Promise<Book> => {
+  const cacheKey = `book_${bookId}`;
+
+  const cached = cacheGet<Book>(cacheKey);
+  if (cached) return cached;
+
   // Сначала пробуем прямой эндпоинт /books/{id}/
   try {
     const { data } = await bookApiClient.get<Book>(`/books/${bookId}/`);
-    return normalizeBook(data);
+    const result = normalizeBook(data);
+    cacheSet(cacheKey, result);
+    return result;
   } catch (directError: any) {
     // Если прямой эндпоинт не работает — фоллбек: загружаем весь список
     try {
@@ -67,7 +110,9 @@ export const fetchBookById = async (bookId: number): Promise<Book> => {
 
       const book = books.find((b) => b.id === bookId);
       if (!book) throw new Error(`Book with ID ${bookId} not found`);
-      return normalizeBook(book);
+      const result = normalizeBook(book);
+      cacheSet(cacheKey, result);
+      return result;
     } catch (error: any) {
       if (error.response?.status === 404 || error.message?.includes('not found')) {
         throw new Error(`Книга с ID ${bookId} не найдена`);
@@ -156,14 +201,23 @@ export const prefetchPages = async (
  * Получить список категорий
  */
 export const fetchCategories = async (params: BookQueryParams = {}): Promise<Category[]> => {
+  const cacheKey = `categories_${JSON.stringify(params)}`;
+
+  const cached = cacheGet<Category[]>(cacheKey);
+  if (cached) return cached;
+
   const { data } = await bookApiClient.get<CategoriesResponse>('/categories/', { params });
   
   // Обрабатываем разные форматы ответа
+  let result: Category[];
   if (Array.isArray(data)) {
-    return data;
+    result = data;
+  } else {
+    result = data.results || data.data || data.value || [];
   }
-  
-  return data.results || data.data || data.value || [];
+
+  cacheSet(cacheKey, result);
+  return result;
 };
 
 // ==== UTILITY FUNCTIONS ====

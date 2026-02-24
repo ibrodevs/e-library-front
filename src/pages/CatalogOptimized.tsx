@@ -1,17 +1,16 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Virtuoso } from 'react-virtuoso';
 import { 
   FaSearch, 
   FaBook, 
   FaFilter, 
   FaBookOpen, 
   FaChevronDown, 
-  FaTimes 
+  FaTimes
 } from 'react-icons/fa';
 import { useBooks, useCategories, usePrefetchBook } from '../hooks/useBookQueries';
-import { BookCardSkeleton, BookGridSkeleton } from '../components/skeletons/BookSkeleton';
+import { BookCardSkeleton } from '../components/skeletons/BookSkeleton';
 import type { Book } from '../types/book';
 
 /**
@@ -33,13 +32,13 @@ const BookCard: React.FC<{
 
   return (
     <div
-      className="bg-gray-900/30 backdrop-blur-lg rounded-2xl overflow-hidden border border-gray-700 hover:border-blue-500/50 transition-all duration-300 group cursor-pointer"
+      className="bg-gray-900/30 backdrop-blur-lg rounded-2xl overflow-hidden border border-gray-700 hover:border-blue-500/50 transition-all duration-300 group cursor-pointer flex flex-col"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={() => setHoveredBook(false)}
       onClick={() => onClick(book.id)}
     >
       {/* Обложка книги */}
-      <div className="relative h-64 overflow-hidden bg-gradient-to-br from-gray-800 to-gray-700">
+      <div className="relative h-64 overflow-hidden bg-gradient-to-br from-gray-800 to-gray-700 flex-shrink-0">
         {book.cover_image_url ? (
           <>
             {!imageLoaded && (
@@ -51,6 +50,9 @@ const BookCard: React.FC<{
               className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
                 imageLoaded ? 'opacity-100' : 'opacity-0'
               }`}
+              loading="lazy"
+              draggable={false}
+              onContextMenu={(e) => e.preventDefault()}
               onLoad={() => setImageLoaded(true)}
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
@@ -86,13 +88,13 @@ const BookCard: React.FC<{
         )}
       </div>
 
-      <div className="p-6">
+      <div className="p-6 flex flex-col flex-1">
         {/* Заголовок и автор */}
         <h3 className="text-xl font-bold text-white mb-2 line-clamp-2 group-hover:text-blue-300 transition-colors">
           {book.title}
         </h3>
         <p className="text-blue-300 mb-4 flex items-center gap-2">
-          <FaBook className="text-sm opacity-70" />
+          <FaBook className="text-sm opacity-70 flex-shrink-0" />
           {book.author}
         </p>
 
@@ -107,16 +109,17 @@ const BookCard: React.FC<{
             e.stopPropagation();
             onClick(book.id);
           }}
-          className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 font-semibold transform hover:scale-105"
+          className="mt-auto w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 font-semibold transform hover:scale-105"
         >
           <FaBookOpen className="group-hover:scale-110 transition-transform" />
           <span>{t('library.actions.read')}</span>
         </button>
+
       </div>
 
       {/* Анимированный эффект при наведении */}
       <div
-        className={`h-1 bg-gradient-to-r from-cyan-400 to-blue-600 transition-all duration-300 ${
+        className={`h-0.5 bg-gradient-to-r from-cyan-400 to-blue-600 transition-all duration-300 ${
           hoveredBook ? 'w-full' : 'w-0'
         }`}
       />
@@ -133,7 +136,9 @@ const CatalogOptimized: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(6);
   const filterRef = useRef<HTMLDivElement>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   // TanStack Query hooks
   const { data: books = [], isLoading, error } = useBooks({ language: i18n.language });
@@ -186,6 +191,27 @@ const CatalogOptimized: React.FC = () => {
     setSelectedCategory('all');
   }, [i18n.language]);
 
+  // Сброс счётчика при смене поиска/фильтра
+  useEffect(() => {
+    setVisibleCount(6);
+  }, [searchQuery, selectedCategory]);
+
+  // Подгружаем следующие 3 книги когда пользователь доскроллил до конца
+  useEffect(() => {
+    const el = loadMoreRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisibleCount((prev) => prev + 3);
+        }
+      },
+      { rootMargin: '300px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [visibleCount, filteredBooks.length]);
+
   // Загрузка
   if (isLoading) {
     return (
@@ -201,7 +227,9 @@ const CatalogOptimized: React.FC = () => {
               </span>
             </h1>
           </div>
-          <BookGridSkeleton count={9} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {Array.from({ length: 6 }).map((_, i) => <BookCardSkeleton key={i} />)}
+          </div>
         </div>
       </div>
     );
@@ -229,37 +257,6 @@ const CatalogOptimized: React.FC = () => {
       </div>
     );
   }
-
-  // Компонент для виртуализированного рендеринга
-  const VirtualizedGrid = () => {
-    const itemsPerRow = 3;
-    const rows = Math.ceil(filteredBooks.length / itemsPerRow);
-
-    return (
-      <Virtuoso
-        style={{ height: '100vh' }}
-        totalCount={rows}
-        itemContent={(rowIndex) => {
-          const startIndex = rowIndex * itemsPerRow;
-          const endIndex = Math.min(startIndex + itemsPerRow, filteredBooks.length);
-          const rowBooks = filteredBooks.slice(startIndex, endIndex);
-
-          return (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8 px-4">
-              {rowBooks.map((book) => (
-                <BookCard
-                  key={book.id}
-                  book={book}
-                  onPrefetch={prefetchBook}
-                  onClick={handleBookClick}
-                />
-              ))}
-            </div>
-          );
-        }}
-      />
-    );
-  };
 
   return (
     <div className="min-h-screen bg-black text-white py-8">
@@ -456,15 +453,33 @@ const CatalogOptimized: React.FC = () => {
           </div>
         </div>
 
-        {/* Сетка книг с виртуализацией */}
+        {/* Сетка книг — 3 колонки, прогрессивная загрузка */}
         {filteredBooks.length > 0 ? (
-          <VirtualizedGrid />
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
+              {filteredBooks.slice(0, visibleCount).map((book) => (
+                <BookCard
+                  key={book.id}
+                  book={book}
+                  onPrefetch={prefetchBook}
+                  onClick={handleBookClick}
+                />
+              ))}
+            </div>
+            {/* Триггер + скелетон следующей партии */}
+            {visibleCount < filteredBooks.length && (
+              <div ref={loadMoreRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
+                {Array.from({ length: Math.min(3, filteredBooks.length - visibleCount) }).map((_, i) => (
+                  <BookCardSkeleton key={i} />
+                ))}
+              </div>
+            )}
+          </>
         ) : (
           <div className="text-center py-16">
             <div className="text-6xl mb-4">📚</div>
             <h3 className="text-2xl font-bold text-white mb-2">
-              {t('library.noResults.title')}
-            </h3>
+              {t('library.noResults.title')}</h3>
             <p className="text-gray-400 max-w-md mx-auto">
               {t('library.noResults.description')}
             </p>

@@ -2,8 +2,10 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Document, Page, pdfjs } from 'react-pdf';
-import { FaArrowLeft, FaChevronLeft, FaChevronRight, FaExpand, FaCompress, FaSearchPlus, FaSearchMinus, FaSearch, FaTimes } from 'react-icons/fa';
+import { FaArrowLeft, FaChevronLeft, FaChevronRight, FaExpand, FaCompress, FaSearchPlus, FaSearchMinus, FaSearch, FaTimes, FaCheckCircle } from 'react-icons/fa';
 import { useBook, usePrefetchPages } from '../hooks/useBookQueries';
+import { useReadingTracker, formatTime } from '../hooks/useReadingTracker';
+import { getUserData } from '../utils/auth';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 
@@ -38,6 +40,21 @@ const BookReaderOptimized: React.FC = () => {
 
   // Prefetch для оптимизации (отключен в текущей реализации)
   usePrefetchPages();
+
+  // ── Reading tracker ──────────────────────────────────────────────────────
+  const userProfile = getUserData();
+  const { pagesRead, timeOnCurrentPageSec, totalTimeSec, currentPageRead, bookMarkedAsRead, justMarkedPage } = useReadingTracker({
+    bookId: Number(bookId),
+    bookTitle: book?.title ?? '',
+    bookAuthor: book?.author ?? '',
+    coverUrl: book?.cover_image_url ?? '',
+    currentPage,
+    totalPages,
+    userEmail: userProfile?.email,
+    userName: `${userProfile?.first_name ?? ''} ${userProfile?.last_name ?? ''}`.trim() || userProfile?.email,
+    userGroup: userProfile?.group,
+    enabled: !!book,
+  });
 
   // Поиск по тексту всех страниц PDF
   const searchInPDF = useCallback(async (query: string) => {
@@ -218,6 +235,7 @@ const BookReaderOptimized: React.FC = () => {
             </h1>
             <p className="text-sm text-gray-400">{displayBook?.author || ''}</p>
           </div>
+
         </div>
 
         {/* Центр - навигация по страницам */}
@@ -408,6 +426,17 @@ const BookReaderOptimized: React.FC = () => {
           )
         )}
       </div>
+
+      {/* ── Page-read toast notification ── */}
+      {justMarkedPage && (
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 bg-green-700/90 backdrop-blur-sm text-white rounded-2xl shadow-2xl border border-green-500/40 animate-bounce-in">
+          <FaCheckCircle className="text-green-300 text-lg flex-shrink-0" />
+          <div>
+            <p className="font-bold text-sm">Страница {currentPage} прочитана! ✓</p>
+            <p className="text-xs text-green-200">Продолжайте — это засчитывается в рейтинг</p>
+          </div>
+        </div>
+      )}
 
       {/* Прогресс бар внизу */}
       {totalPages > 0 && (

@@ -9,6 +9,7 @@ import Contacts from './pages/Contacts';
 import BookReaderOptimized from './pages/BookReaderOptimized';
 import LoginPage from './pages/LoginPage';
 import ProfilePage from './pages/ProfilePage';
+import LeaderboardPage from './pages/LeaderboardPage';
 import Footer from './components/Footer';
 import './App.css';
 
@@ -46,6 +47,14 @@ function Layout() {
             element={
               <ProtectedRoute>
                 <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/leaderboard"
+            element={
+              <ProtectedRoute>
+                <LeaderboardPage />
               </ProtectedRoute>
             }
           />

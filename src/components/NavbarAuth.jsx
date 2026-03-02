@@ -101,6 +101,20 @@ export default function HeroNavbar() {
               <span className={`absolute bottom-1 ${isRTL ? 'right-3' : 'left-3'} w-0 h-0.5 bg-gradient-to-r from-white to-blue-600 transition-all duration-500 group-hover:w-[calc(100%-1.5rem)]`}></span>
             </Link>
           )}
+
+          {/* Таблица лидеров - только для авторизованных */}
+          {isAuth && (
+            <Link 
+              to="/leaderboard" 
+              className="relative text-white text-base lg:text-lg font-medium py-2 px-2 lg:px-3 rounded-lg transition-all group"
+              onClick={() => window.scrollTo(0, 0)}
+            >
+              <span className="relative z-10 flex items-center gap-1.5">
+                Рейтинг
+              </span>
+              <span className={`absolute bottom-1 ${isRTL ? 'right-3' : 'left-3'} w-0 h-0.5 bg-gradient-to-r from-white to-yellow-400 transition-all duration-500 group-hover:w-[calc(100%-1.5rem)]`}></span>
+            </Link>
+          )}
           
           <Link 
             to="/contacts" 
@@ -282,6 +296,20 @@ export default function HeroNavbar() {
                 </svg>
               </span>
               <span className={`absolute bottom-2 ${isRTL ? 'right-4' : 'left-4'} w-0 h-0.5 bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-500 group-hover:w-[calc(100%-2rem)]`}></span>
+            </Link>
+          )}
+
+          {/* Таблица лидеров - только для авторизованных */}
+          {isAuth && (
+            <Link 
+              to="/leaderboard" 
+              className="relative text-white text-xl font-medium py-3 px-4 rounded-lg hover:bg-yellow-500/20 transition-all group"
+              onClick={closeMenu}
+            >
+              <span className="relative z-10 flex items-center gap-2">
+                Рейтинг
+              </span>
+              <span className={`absolute bottom-2 ${isRTL ? 'right-4' : 'left-4'} w-0 h-0.5 bg-gradient-to-r from-yellow-400 to-yellow-600 transition-all duration-500 group-hover:w-[calc(100%-2rem)]`}></span>
             </Link>
           )}
           

@@ -130,6 +130,22 @@ export default function HeroNavbar() {
             </span>
             <span className={`absolute bottom-1 ${isRTL ? 'right-3' : 'left-3'} w-0 h-0.5 bg-gradient-to-r from-white to-blue-600 transition-all duration-500 group-hover:w-[calc(100%-1.5rem)]`}></span>
           </Link>
+
+          <a
+            href="https://login.research4life.org/tacsgr1portal_research4life_org/content/books"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="relative text-white text-base lg:text-lg font-medium py-2 px-2 lg:px-3 rounded-lg transition-all group"
+          >
+            <span className="relative z-10 flex items-center">
+              Research4life
+              <svg className={`w-4 h-4 ${isRTL ? 'mr-2' : 'ml-2'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} 
+                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </span>
+            <span className={`absolute bottom-1 ${isRTL ? 'right-3' : 'left-3'} w-0 h-0.5 bg-gradient-to-r from-white to-blue-600 transition-all duration-500 group-hover:w-[calc(100%-1.5rem)]`}></span>
+          </a>
         </div>
 
         {/* Правый блок: Кнопка входа/профиля + Выход + Языки + Бургер */}
@@ -327,6 +343,23 @@ export default function HeroNavbar() {
             </span>
             <span className={`absolute bottom-2 ${isRTL ? 'right-4' : 'left-4'} w-0 h-0.5 bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-500 group-hover:w-[calc(100%-2rem)]`}></span>
           </Link>
+
+          <a
+            href="https://login.research4life.org/tacsgr1portal_research4life_org/content/books"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="relative text-white text-xl font-medium py-3 px-4 rounded-lg hover:bg-blue-900/30 transition-all group"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <span className="relative z-10 flex items-center">
+              Research4life
+              <svg className={`w-5 h-5 ${isRTL ? 'mr-2' : 'ml-2'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} 
+                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </span>
+            <span className={`absolute bottom-2 ${isRTL ? 'right-4' : 'left-4'} w-0 h-0.5 bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-500 group-hover:w-[calc(100%-2rem)]`}></span>
+          </a>
 
           {/* Профиль или Вход */}
           {isAuth ? (

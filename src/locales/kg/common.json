@@ -1,10 +1,19 @@
 {
   "navbar": {
-    "title": "SU e-library",
-    "home": "Башкы бет",
-    "catalog": "Каталог",
-    "contacts": "Байланыш"
-  },
+  "title": "SU e-library",
+  "home": "Башкы бет",
+  "catalog": "Каталог",
+  "contacts": "Байланыш",
+  "extraLibrary": "Кошумча китепканалар",
+  "externalLibraries": {
+    "geotar": "ГЕОТАР",
+    "bbk": "ББК",
+    "research4life": "Research4Life",
+    "studentConsultant": "Студент консультанты",
+    "ebsco": "EBSCO",
+    "scopus": "Scopus"
+  }
+},
   "login": {
     "title": "Кош келиңиз",
     "subtitle": "Жеке кабинетке кириңиз",

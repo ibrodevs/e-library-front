@@ -1,10 +1,19 @@
 {
   "navbar": {
-    "title": "SU e-library",
-    "home": "Главная",
-    "catalog": "Каталог",
-    "contacts": "Контакты"
-  },
+  "title": "SU e-library",
+  "home": "Главная",
+  "catalog": "Каталог",
+  "contacts": "Контакты",
+  "extraLibrary": "Доп. Библиотеки",
+  "externalLibraries": {
+    "geotar": "ГЕОТАР",
+    "bbk": "ББК",
+    "research4life": "Research4Life",
+    "studentConsultant": "Консультант Студента",
+    "ebsco": "EBSCO",
+    "scopus": "Scopus"
+  }
+},
   "login": {
     "title": "Добро пожаловать",
     "subtitle": "Войдите в личный кабинет",

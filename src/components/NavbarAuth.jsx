@@ -11,6 +11,7 @@ export default function HeroNavbar() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isExtraLibrariesOpen, setIsExtraLibrariesOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const isRTL = i18n.dir() === 'rtl';
@@ -72,6 +73,7 @@ export default function HeroNavbar() {
 
   const closeMenu = () => {
     setIsMenuOpen(false);
+    setIsExtraLibrariesOpen(false);
     window.scrollTo(0, 0);
   };
 
@@ -344,6 +346,44 @@ export default function HeroNavbar() {
               <span className={`absolute bottom-2 ${isRTL ? 'right-4' : 'left-4'} w-0 h-0.5 bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-500 group-hover:w-[calc(100%-2rem)]`}></span>
             </Link>
           )}
+
+          <div className="text-white">
+            <button
+              type="button"
+              className="relative w-full text-left text-white text-xl font-medium py-3 px-4 rounded-lg hover:bg-blue-900/30 transition-all group"
+              onClick={() => setIsExtraLibrariesOpen(!isExtraLibrariesOpen)}
+            >
+              <span className="relative z-10 flex items-center justify-between">
+                {t('navbar.extraLibrary')}
+                <svg
+                  className={`w-5 h-5 ${isRTL ? 'mr-2' : 'ml-2'} transition-transform duration-300 ${isExtraLibrariesOpen ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </span>
+              <span className={`absolute bottom-2 ${isRTL ? 'right-4' : 'left-4'} w-0 h-0.5 bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-500 group-hover:w-[calc(100%-2rem)]`}></span>
+            </button>
+
+            {isExtraLibrariesOpen && (
+              <div className="mt-2 flex flex-col rounded-lg bg-white/10 py-2">
+                {externalLibraries.map((library) => (
+                  <a
+                    key={library.key}
+                    href={library.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mx-2 px-4 py-2 rounded-lg text-base font-medium hover:bg-white/20 transition-all"
+                    onClick={closeMenu}
+                  >
+                    {t(`navbar.externalLibraries.${library.key}`)}
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
 
           <Link
             to="/contacts"

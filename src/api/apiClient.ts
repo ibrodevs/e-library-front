@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getAuthToken, logout } from '../utils/auth';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 /**
  * Центральный Axios-клиент с JWT-авторизацией

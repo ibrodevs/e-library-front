@@ -83,10 +83,10 @@ const BookReader = () => {
   }
 
   const pdfUrl = book.pdf_url || book.pdf_file;
-  const HEROKU_BASE = 'https://su-library-back-d2d8d21af2e4.herokuapp.com';
+  const BACKEND_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api').replace(/\/api\/?$/, '');
   const fullPdfUrl = pdfUrl?.startsWith('http') 
     ? pdfUrl 
-    : `${HEROKU_BASE}${pdfUrl}`;
+    : `${BACKEND_BASE}${pdfUrl}`;
 
   return (
     <div className="h-screen flex flex-col bg-gray-900">

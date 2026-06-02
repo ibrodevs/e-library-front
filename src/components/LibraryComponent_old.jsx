@@ -114,8 +114,8 @@ const LibraryComponent = () => {
     if (pdfUrl && pdfUrl.startsWith('http')) {
       window.open(pdfUrl, '_blank', 'noopener,noreferrer');
     } else if (pdfUrl) {
-      const HEROKU_BASE = 'https://su-library-back-d2d8d21af2e4.herokuapp.com';
-      const fullUrl = `${HEROKU_BASE}${pdfUrl}`;
+      const backendBase = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api').replace(/\/api\/?$/, '');
+      const fullUrl = `${backendBase}${pdfUrl}`;
       window.open(fullUrl, '_blank', 'noopener,noreferrer');
     } else {
       alert('PDF файл недоступен');

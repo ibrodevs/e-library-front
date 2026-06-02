@@ -9,9 +9,10 @@ import type {
   CategoriesResponse 
 } from '../types/book';
 
-// Для книг - берем с Heroku (там уже есть данные)
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+
 const bookApiClient = axios.create({
-  baseURL: 'https://su-library-back-d2d8d21af2e4.herokuapp.com/api',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },

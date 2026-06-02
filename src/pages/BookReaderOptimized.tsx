@@ -34,7 +34,13 @@ const BookReaderOptimized: React.FC = () => {
   const zoomOut = () => setScale(prev => Math.max(prev - 0.2, 0.5));
 
   // Загружаем полные данные книги
-  const { data: book, isLoading, error } = useBook(Number(bookId));
+  const {
+    data: book,
+    isLoading,
+    isFetching,
+    isPlaceholderData,
+    error,
+  } = useBook(Number(bookId));
 
   // Prefetch для оптимизации (отключен в текущей реализации)
   usePrefetchPages();
@@ -163,6 +169,8 @@ const BookReaderOptimized: React.FC = () => {
 
   // Показываем мгновенный UI с данными книги
   const displayBook = book;
+  const isWaitingForPdfUrl =
+    !displayBook?.pdf_file_url && (isLoading || isFetching || isPlaceholderData);
 
   // Ошибка загрузки
   if (error) {
@@ -394,6 +402,11 @@ const BookReaderOptimized: React.FC = () => {
               width={Math.min(window.innerWidth - 32, 1200) * scale}
             />
           </Document>
+        ) : isWaitingForPdfUrl ? (
+          <div className="flex flex-col items-center justify-center gap-4 text-white py-20">
+            <div className="w-16 h-16 border-4 border-blue-500/30 border-t-blue-400 rounded-full animate-spin" />
+            <p className="text-gray-400 text-sm">Загрузка файла книги...</p>
+          </div>
         ) : (
           !isLoading && (
             <div className="text-center text-gray-400">

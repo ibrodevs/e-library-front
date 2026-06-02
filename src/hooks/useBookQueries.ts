@@ -45,7 +45,7 @@ export const useBook = (bookId: number) => {
     queryFn: () => bookApi.fetchBookById(bookId),
     staleTime: Infinity,
     enabled: !!bookId,
-    initialData: cachedBook,
+    placeholderData: cachedBook,
   });
 };
 

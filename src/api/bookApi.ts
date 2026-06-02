@@ -87,39 +87,18 @@ export const fetchBookById = async (bookId: number): Promise<Book> => {
   const cacheKey = `book_${bookId}`;
 
   const cached = cacheGet<Book>(cacheKey);
-  if (cached) return cached;
+  if (cached?.pdf_file_url) return cached;
 
-  // Сначала пробуем прямой эндпоинт /books/{id}/
   try {
     const { data } = await bookApiClient.get<Book>(`/books/${bookId}/`);
     const result = normalizeBook(data);
     cacheSet(cacheKey, result);
     return result;
-  } catch (directError: any) {
-    // Если прямой эндпоинт не работает — фоллбек: загружаем весь список
-    try {
-      const { data } = await bookApiClient.get<BooksResponse>('/books/', {
-        params: { id: bookId },
-      });
-
-      let books: Book[] = [];
-      if (Array.isArray(data)) {
-        books = data;
-      } else {
-        books = data.results || data.data || data.value || [];
-      }
-
-      const book = books.find((b) => b.id === bookId);
-      if (!book) throw new Error(`Book with ID ${bookId} not found`);
-      const result = normalizeBook(book);
-      cacheSet(cacheKey, result);
-      return result;
-    } catch (error: any) {
-      if (error.response?.status === 404 || error.message?.includes('not found')) {
-        throw new Error(`Книга с ID ${bookId} не найдена`);
-      }
-      throw error;
+  } catch (error: any) {
+    if (error.response?.status === 404) {
+      throw new Error(`Книга с ID ${bookId} не найдена`);
     }
+    throw error;
   }
 };
 

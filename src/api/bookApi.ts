@@ -10,6 +10,7 @@ import type {
 } from '../types/book';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');
 
 const bookApiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -53,6 +54,9 @@ const normalizeBook = (book: Book): Book => ({
   cover_image_url: book.cover_image_url || book.cover_image || '',
 });
 
+export const buildBookFileUrl = (bookId: number): string =>
+  `${API_ORIGIN}/api/book-file/${bookId}/`;
+
 /**
  * Получить список всех книг с фильтрацией
  */
@@ -92,6 +96,9 @@ export const fetchBookById = async (bookId: number): Promise<Book> => {
   try {
     const { data } = await bookApiClient.get<Book>(`/books/${bookId}/`);
     const result = normalizeBook(data);
+    if (!result.pdf_file_url) {
+      result.pdf_file_url = buildBookFileUrl(bookId);
+    }
     cacheSet(cacheKey, result);
     return result;
   } catch (error: any) {

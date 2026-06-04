@@ -42,7 +42,19 @@ export const useBook = (bookId: number) => {
 
   return useQuery({
     queryKey: queryKeys.books.detail(bookId),
-    queryFn: () => bookApi.fetchBookById(bookId),
+    queryFn: async () => {
+      try {
+        return await bookApi.fetchBookById(bookId);
+      } catch (error) {
+        if (cachedBook) {
+          return {
+            ...cachedBook,
+            pdf_file_url: cachedBook.pdf_file_url || bookApi.buildBookFileUrl(bookId),
+          };
+        }
+        throw error;
+      }
+    },
     staleTime: Infinity,
     enabled: !!bookId,
     placeholderData: cachedBook,

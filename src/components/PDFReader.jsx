@@ -70,7 +70,7 @@ const PDFReader = ({ pdfUrl }) => {
     setLoading(false);
   };
 
-  const onDocumentLoadError = (error) => {
+  const onDocumentLoadError = (_error) => {
     setError('Не удалось загрузить PDF файл');
     setLoading(false);
   };

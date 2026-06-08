@@ -11,6 +11,11 @@ import type {
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');
+const warmedPdfUrls = new Set<string>();
+const warmedBookBundles = new Set<number>();
+const pdfBlobUrlCache = new Map<string, string>();
+const pdfBlobRequestCache = new Map<string, Promise<string>>();
+const FULL_PREFETCH_LIMIT_BYTES = 8 * 1024 * 1024;
 
 const bookApiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -79,6 +84,7 @@ export const fetchBooks = async (params: BookQueryParams = {}): Promise<Book[]> 
   
   const result = books.map(normalizeBook);
   cacheSet(cacheKey, result);
+  result.forEach((book) => cacheSet(`book_${book.id}`, book));
   return result;
 };
 
@@ -180,6 +186,110 @@ export const prefetchPages = async (
   }
   
   return Promise.all(pagePromises);
+};
+
+/**
+ * Прогреть бандл ридера и его зависимости ещё до перехода на страницу чтения.
+ */
+export const warmReaderBundle = async (bookId?: number): Promise<void> => {
+  if (bookId && warmedBookBundles.has(bookId)) {
+    return;
+  }
+
+  await Promise.allSettled([
+    import('../pages/BookReaderOptimized'),
+    import('react-pdf'),
+  ]);
+
+  if (bookId) {
+    warmedBookBundles.add(bookId);
+  }
+};
+
+/**
+ * Прогреть первые байты PDF, чтобы первая страница стартовала быстрее.
+ */
+export const warmPdfUrl = async (pdfUrl?: string): Promise<void> => {
+  if (!pdfUrl || warmedPdfUrls.has(pdfUrl)) {
+    return;
+  }
+
+  warmedPdfUrls.add(pdfUrl);
+
+  try {
+    await fetch(pdfUrl, {
+      method: 'GET',
+      headers: {
+        Range: 'bytes=0-65535',
+      },
+    });
+  } catch {
+    warmedPdfUrls.delete(pdfUrl);
+  }
+};
+
+/**
+ * Возвращает уже прогретый локальный blob URL, если он есть.
+ */
+export const getCachedPdfSource = (pdfUrl?: string): string | undefined => {
+  if (!pdfUrl) {
+    return undefined;
+  }
+
+  return pdfBlobUrlCache.get(pdfUrl);
+};
+
+/**
+ * Скачивает небольшие PDF целиком в браузерный кэш для максимально быстрого открытия.
+ */
+export const prefetchPdfBlob = async (pdfUrl?: string): Promise<string | undefined> => {
+  if (!pdfUrl) {
+    return undefined;
+  }
+
+  const cachedSource = pdfBlobUrlCache.get(pdfUrl);
+  if (cachedSource) {
+    return cachedSource;
+  }
+
+  const inFlight = pdfBlobRequestCache.get(pdfUrl);
+  if (inFlight) {
+    return inFlight;
+  }
+
+  const request = (async () => {
+    const headResponse = await fetch(pdfUrl, { method: 'HEAD' });
+    if (!headResponse.ok) {
+      throw new Error(`HEAD request failed for ${pdfUrl}`);
+    }
+
+    const contentLength = Number(headResponse.headers.get('content-length') || 0);
+    if (contentLength && contentLength > FULL_PREFETCH_LIMIT_BYTES) {
+      throw new Error(`PDF is too large for eager prefetch: ${contentLength} bytes`);
+    }
+
+    const pdfResponse = await fetch(pdfUrl);
+    if (!pdfResponse.ok) {
+      throw new Error(`GET request failed for ${pdfUrl}`);
+    }
+
+    const blob = await pdfResponse.blob();
+    if (blob.size > FULL_PREFETCH_LIMIT_BYTES) {
+      throw new Error(`PDF blob is too large for eager prefetch: ${blob.size} bytes`);
+    }
+
+    const objectUrl = URL.createObjectURL(blob);
+    pdfBlobUrlCache.set(pdfUrl, objectUrl);
+    return objectUrl;
+  })();
+
+  pdfBlobRequestCache.set(pdfUrl, request);
+
+  try {
+    return await request;
+  } finally {
+    pdfBlobRequestCache.delete(pdfUrl);
+  }
 };
 
 // ==== CATEGORIES API ====

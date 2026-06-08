@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { FaArrowLeft, FaChevronLeft, FaChevronRight, FaExpand, FaCompress, FaSearchPlus, FaSearchMinus, FaSearch, FaTimes } from 'react-icons/fa';
 import { useBook, usePrefetchPages } from '../hooks/useBookQueries';
+import { getCachedPdfSource, prefetchPdfBlob, warmPdfUrl } from '../api/bookApi';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 
@@ -29,6 +30,10 @@ const BookReaderOptimized: React.FC = () => {
   const [highlightText, setHighlightText] = useState('');
   const [activeResultIndex, setActiveResultIndex] = useState<number>(-1);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const [viewportWidth, setViewportWidth] = useState(() =>
+    typeof window === 'undefined' ? 1200 : window.innerWidth
+  );
+  const [pdfSource, setPdfSource] = useState<string>();
 
   const zoomIn = () => setScale(prev => Math.min(prev + 0.2, 3.0));
   const zoomOut = () => setScale(prev => Math.max(prev - 0.2, 0.5));
@@ -44,6 +49,35 @@ const BookReaderOptimized: React.FC = () => {
 
   // Prefetch для оптимизации (отключен в текущей реализации)
   usePrefetchPages();
+
+  useEffect(() => {
+    if (!book?.pdf_file_url) {
+      setPdfSource(undefined);
+      return;
+    }
+
+    const cachedPdfSource = getCachedPdfSource(book.pdf_file_url);
+    setPdfSource(cachedPdfSource || book.pdf_file_url);
+    warmPdfUrl(book.pdf_file_url);
+
+    if (!cachedPdfSource) {
+      prefetchPdfBlob(book.pdf_file_url)
+        .then((blobUrl) => {
+          if (blobUrl) {
+            setPdfSource(blobUrl);
+          }
+        })
+        .catch(() => {
+          setPdfSource((currentSource) => currentSource || book.pdf_file_url);
+        });
+    }
+  }, [book?.pdf_file_url]);
+
+  useEffect(() => {
+    const handleResize = () => setViewportWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Поиск по тексту всех страниц PDF
   const searchInPDF = useCallback(async (query: string) => {
@@ -367,9 +401,10 @@ const BookReaderOptimized: React.FC = () => {
       {/* Основная область: PDF */}
       <div className="flex-1 overflow-auto bg-gray-900 relative flex items-center justify-center p-4">
         {/* PDF Viewer */}
-        {displayBook?.pdf_file_url ? (
+        {pdfSource ? (
           <Document
-            file={displayBook.pdf_file_url}
+            key={pdfSource}
+            file={pdfSource}
             onLoadSuccess={onDocumentLoadSuccess}
             onLoadProgress={onLoadProgress}
             loading={
@@ -395,11 +430,11 @@ const BookReaderOptimized: React.FC = () => {
           >
             <Page
               pageNumber={currentPage}
-              renderTextLayer={true}
-              renderAnnotationLayer={true}
+              renderTextLayer={showSearch || Boolean(highlightText)}
+              renderAnnotationLayer={false}
               customTextRenderer={customTextRenderer}
               className="shadow-2xl"
-              width={Math.min(window.innerWidth - 32, 1200) * scale}
+              width={Math.min(viewportWidth - 32, 1200) * scale}
             />
           </Document>
         ) : isWaitingForPdfUrl ? (

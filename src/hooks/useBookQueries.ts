@@ -39,6 +39,14 @@ export const useBook = (bookId: number) => {
     }
     return undefined;
   })();
+  const cachedBookWithPdfUrl = cachedBook?.pdf_file_url
+    ? cachedBook
+    : cachedBook
+      ? {
+          ...cachedBook,
+          pdf_file_url: bookApi.buildBookFileUrl(bookId),
+        }
+      : undefined;
 
   return useQuery({
     queryKey: queryKeys.books.detail(bookId),
@@ -57,7 +65,8 @@ export const useBook = (bookId: number) => {
     },
     staleTime: Infinity,
     enabled: !!bookId,
-    placeholderData: cachedBook,
+    initialData: cachedBookWithPdfUrl,
+    placeholderData: cachedBookWithPdfUrl ? undefined : cachedBook,
   });
 };
 
@@ -80,14 +89,19 @@ export const useBookMetadata = (bookId: number) => {
 export const usePrefetchBook = () => {
   const queryClient = useQueryClient();
 
-  return (bookId: number) => {
-    // Только prefetch основной книги, на странице reader загружать сам себе
-    queryClient.prefetchQuery({
+  return async (bookId: number, pdfUrl?: string) => {
+    const prefetchBookPromise = queryClient.prefetchQuery({
       queryKey: queryKeys.books.detail(bookId),
       queryFn: () => bookApi.fetchBookById(bookId),
       staleTime: Infinity,
     });
-    // Не prefetch страницы - дать PDF viewer загружаться спокойно
+
+    await Promise.allSettled([
+      prefetchBookPromise,
+      bookApi.warmReaderBundle(bookId),
+      bookApi.warmPdfUrl(pdfUrl),
+      bookApi.prefetchPdfBlob(pdfUrl),
+    ]);
   };
 };
 

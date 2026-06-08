@@ -18,8 +18,8 @@ import type { Book } from '../types/book';
  */
 const BookCard: React.FC<{
   book: Book;
-  onPrefetch: (bookId: number) => void;
-  onClick: (bookId: number) => void;
+  onPrefetch: (bookId: number, pdfUrl?: string) => void;
+  onClick: (book: Book) => void;
 }> = ({ book, onPrefetch, onClick }) => {
   const { t } = useTranslation();
   const [hoveredBook, setHoveredBook] = useState(false);
@@ -27,7 +27,15 @@ const BookCard: React.FC<{
 
   const handleMouseEnter = () => {
     setHoveredBook(true);
-    onPrefetch(book.id);
+    onPrefetch(book.id, book.pdf_file_url);
+  };
+
+  const handleTouchStart = () => {
+    onPrefetch(book.id, book.pdf_file_url);
+  };
+
+  const handleFocus = () => {
+    onPrefetch(book.id, book.pdf_file_url);
   };
 
   return (
@@ -35,7 +43,10 @@ const BookCard: React.FC<{
       className="bg-gray-900/30 backdrop-blur-lg rounded-2xl overflow-hidden border border-gray-700 hover:border-blue-500/50 transition-all duration-300 group cursor-pointer flex flex-col"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={() => setHoveredBook(false)}
-      onClick={() => onClick(book.id)}
+      onTouchStart={handleTouchStart}
+      onFocus={handleFocus}
+      onClick={() => onClick(book)}
+      tabIndex={0}
     >
       {/* Обложка книги */}
       <div className="relative h-64 overflow-hidden bg-gradient-to-br from-gray-800 to-gray-700 flex-shrink-0">
@@ -107,7 +118,7 @@ const BookCard: React.FC<{
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onClick(book.id);
+            onClick(book);
           }}
           className="mt-auto w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 font-semibold transform hover:scale-105"
         >
@@ -170,8 +181,13 @@ const CatalogOptimized: React.FC = () => {
   }, [selectedCategory, categories, t]);
 
   // Обработка клика на книгу
-  const handleBookClick = (bookId: number) => {
-    navigate(`/read/${bookId}`);
+  const handleBookClick = async (book: Book) => {
+    await Promise.race([
+      prefetchBook(book.id, book.pdf_file_url),
+      new Promise((resolve) => window.setTimeout(resolve, 1200)),
+    ]);
+
+    navigate(`/read/${book.id}`);
   };
 
   // Закрытие фильтров при клике вне области

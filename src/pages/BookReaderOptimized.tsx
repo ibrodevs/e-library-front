@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Document, Page, pdfjs } from 'react-pdf';
-import { FaArrowLeft, FaChevronLeft, FaChevronRight, FaExpand, FaCompress, FaSearchPlus, FaSearchMinus, FaSearch, FaTimes } from 'react-icons/fa';
+import { FaArrowLeft, FaChevronLeft, FaChevronRight, FaExpand, FaCompress, FaSearchPlus, FaSearchMinus, FaSearch, FaTimes, FaExternalLinkAlt, FaBookOpen } from 'react-icons/fa';
 import { useBook, usePrefetchPages } from '../hooks/useBookQueries';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
@@ -12,9 +12,10 @@ pdfjs.GlobalWorkerOptions.workerSrc = '/pdfjs/pdf.worker.min.js';
 
 const INITIAL_RENDERED_PAGES = 5;
 const PAGE_BATCH_SIZE = 3;
+const LARGE_PDF_THRESHOLD_BYTES = 20 * 1024 * 1024;
 const PDF_OPTIONS = {
   disableAutoFetch: true,
-  disableStream: false,
+  disableStream: true,
   rangeChunkSize: 65536,
 };
 
@@ -38,6 +39,7 @@ const BookReaderOptimized: React.FC = () => {
   const [pdfLoadProgress, setPdfLoadProgress] = useState(0);
   const [scale, setScale] = useState(1.0);
   const [renderedPages, setRenderedPages] = useState<number[]>([]);
+  const [forceEmbeddedReader, setForceEmbeddedReader] = useState(false);
   const viewerRef = useRef<HTMLDivElement>(null);
   const pageRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
@@ -70,6 +72,7 @@ const BookReaderOptimized: React.FC = () => {
     setTotalPages(0);
     setPdfLoadProgress(0);
     setRenderedPages([]);
+    setForceEmbeddedReader(false);
     pageRefs.current = {};
     viewerRef.current?.scrollTo({ top: 0 });
   }, [book?.pdf_file_url]);
@@ -255,6 +258,19 @@ const BookReaderOptimized: React.FC = () => {
   const displayBook = book;
   const isWaitingForPdfUrl =
     !displayBook?.pdf_file_url && (isLoading || isFetching || isPlaceholderData);
+  const isLargePdf =
+    typeof displayBook?.pdf_file_size === 'number' &&
+    displayBook.pdf_file_size >= LARGE_PDF_THRESHOLD_BYTES;
+  const shouldUseFastPdfMode = Boolean(displayBook?.pdf_file_url && isLargePdf && !forceEmbeddedReader);
+  const pdfSizeMb = displayBook?.pdf_file_size
+    ? (displayBook.pdf_file_size / 1024 / 1024).toFixed(1)
+    : null;
+
+  const openPdfInNewTab = () => {
+    if (displayBook?.pdf_file_url) {
+      window.open(displayBook.pdf_file_url, '_blank', 'noopener,noreferrer');
+    }
+  };
 
   // Ошибка загрузки
   if (error) {
@@ -455,7 +471,37 @@ const BookReaderOptimized: React.FC = () => {
         className="flex-1 overflow-auto bg-gray-900 relative p-4"
       >
         {/* PDF Viewer */}
-        {displayBook?.pdf_file_url ? (
+        {shouldUseFastPdfMode ? (
+          <div className="min-h-full flex items-center justify-center px-4 py-10">
+            <div className="w-full max-w-xl bg-gray-950 border border-gray-700 rounded-lg p-6 text-center shadow-2xl">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-600/15 text-blue-300">
+                <FaExternalLinkAlt />
+              </div>
+              <h2 className="text-xl font-semibold text-white mb-2">
+                {displayBook?.title || 'PDF'}
+              </h2>
+              <p className="text-sm text-gray-400 mb-6">
+                Большой файл{pdfSizeMb ? `, ${pdfSizeMb} MB` : ''}. Быстрый режим откроет его во встроенном PDF viewer браузера.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <button
+                  onClick={openPdfInNewTab}
+                  className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-white transition-colors"
+                >
+                  <FaExternalLinkAlt />
+                  Открыть быстро
+                </button>
+                <button
+                  onClick={() => setForceEmbeddedReader(true)}
+                  className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg text-white transition-colors"
+                >
+                  <FaBookOpen />
+                  Открыть внутри сайта
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : displayBook?.pdf_file_url ? (
           <Document
             file={displayBook.pdf_file_url}
             options={PDF_OPTIONS}

@@ -16,6 +16,7 @@ export interface Book {
   cover_image?: string;
   year?: number;
   pdf_file_url?: string;
+  pdf_file_size?: number | null;
   pdf_url?: string;
   pdf_file?: string;
   total_pages?: number;

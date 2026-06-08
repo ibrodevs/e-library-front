@@ -97,7 +97,7 @@ export const fetchBookById = async (bookId: number): Promise<Book> => {
   const cacheKey = `book_${bookId}`;
 
   const cached = cacheGet<Book>(cacheKey);
-  if (cached?.pdf_file_url) return cached;
+  if (cached?.pdf_file_url && typeof cached.pdf_file_size !== 'undefined') return cached;
 
   try {
     const { data } = await bookApiClient.get<Book>(`/books/${bookId}/`);

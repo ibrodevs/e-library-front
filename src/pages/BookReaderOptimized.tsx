@@ -4,12 +4,28 @@ import { useTranslation } from 'react-i18next';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { FaArrowLeft, FaChevronLeft, FaChevronRight, FaExpand, FaCompress, FaSearchPlus, FaSearchMinus, FaSearch, FaTimes } from 'react-icons/fa';
 import { useBook, usePrefetchPages } from '../hooks/useBookQueries';
-import { getCachedPdfSource, prefetchPdfBlob, warmPdfUrl } from '../api/bookApi';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 
 // Настройка PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdfjs/pdf.worker.min.js';
+
+const INITIAL_RENDERED_PAGES = 5;
+const PAGE_BATCH_SIZE = 3;
+const PDF_OPTIONS = {
+  disableAutoFetch: true,
+  disableStream: false,
+  rangeChunkSize: 65536,
+};
+
+const buildPageWindow = (startPage: number, count: number, totalPages: number): number[] => {
+  const safeStart = Math.max(1, Math.min(startPage, totalPages || startPage));
+  const safeEnd = totalPages
+    ? Math.min(totalPages, safeStart + count - 1)
+    : safeStart + count - 1;
+
+  return Array.from({ length: safeEnd - safeStart + 1 }, (_, index) => safeStart + index);
+};
 
 const BookReaderOptimized: React.FC = () => {
   const { bookId } = useParams<{ bookId: string }>();
@@ -21,6 +37,9 @@ const BookReaderOptimized: React.FC = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [pdfLoadProgress, setPdfLoadProgress] = useState(0);
   const [scale, setScale] = useState(1.0);
+  const [renderedPages, setRenderedPages] = useState<number[]>([]);
+  const viewerRef = useRef<HTMLDivElement>(null);
+  const pageRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
   // === Поиск ===
   const [showSearch, setShowSearch] = useState(false);
@@ -30,10 +49,6 @@ const BookReaderOptimized: React.FC = () => {
   const [highlightText, setHighlightText] = useState('');
   const [activeResultIndex, setActiveResultIndex] = useState<number>(-1);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const [viewportWidth, setViewportWidth] = useState(() =>
-    typeof window === 'undefined' ? 1200 : window.innerWidth
-  );
-  const [pdfSource, setPdfSource] = useState<string>();
 
   const zoomIn = () => setScale(prev => Math.min(prev + 0.2, 3.0));
   const zoomOut = () => setScale(prev => Math.max(prev - 0.2, 0.5));
@@ -51,33 +66,13 @@ const BookReaderOptimized: React.FC = () => {
   usePrefetchPages();
 
   useEffect(() => {
-    if (!book?.pdf_file_url) {
-      setPdfSource(undefined);
-      return;
-    }
-
-    const cachedPdfSource = getCachedPdfSource(book.pdf_file_url);
-    setPdfSource(cachedPdfSource || book.pdf_file_url);
-    warmPdfUrl(book.pdf_file_url);
-
-    if (!cachedPdfSource) {
-      prefetchPdfBlob(book.pdf_file_url)
-        .then((blobUrl) => {
-          if (blobUrl) {
-            setPdfSource(blobUrl);
-          }
-        })
-        .catch(() => {
-          setPdfSource((currentSource) => currentSource || book.pdf_file_url);
-        });
-    }
+    setCurrentPage(1);
+    setTotalPages(0);
+    setPdfLoadProgress(0);
+    setRenderedPages([]);
+    pageRefs.current = {};
+    viewerRef.current?.scrollTo({ top: 0 });
   }, [book?.pdf_file_url]);
-
-  useEffect(() => {
-    const handleResize = () => setViewportWidth(window.innerWidth);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   // Поиск по тексту всех страниц PDF
   const searchInPDF = useCallback(async (query: string) => {
@@ -120,9 +115,25 @@ const BookReaderOptimized: React.FC = () => {
     }
   }, [book?.pdf_file_url]);
 
+  const ensurePageRendered = useCallback((page: number) => {
+    setRenderedPages((prev) => (
+      prev.includes(page)
+        ? prev
+        : buildPageWindow(page, INITIAL_RENDERED_PAGES, totalPages)
+    ));
+  }, [totalPages]);
+
+  const scrollToPage = useCallback((page: number) => {
+    ensurePageRendered(page);
+    setCurrentPage(page);
+    window.setTimeout(() => {
+      pageRefs.current[page]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 0);
+  }, [ensurePageRendered]);
+
   // Переход к результату
   const goToResult = (result: { page: number }, index: number) => {
-    setCurrentPage(result.page);
+    scrollToPage(result.page);
     setActiveResultIndex(index);
   };
 
@@ -153,6 +164,7 @@ const BookReaderOptimized: React.FC = () => {
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setTotalPages(numPages);
     setPdfLoadProgress(100);
+    setRenderedPages(buildPageWindow(1, INITIAL_RENDERED_PAGES, numPages));
   };
 
   // Обработка прогресса загрузки PDF
@@ -164,15 +176,53 @@ const BookReaderOptimized: React.FC = () => {
   // Навигация по страницам
   const goToNextPage = () => {
     if (currentPage < totalPages) {
-      setCurrentPage((prev) => prev + 1);
+      scrollToPage(currentPage + 1);
     }
   };
 
   const goToPreviousPage = () => {
     if (currentPage > 1) {
-      setCurrentPage((prev) => prev - 1);
+      scrollToPage(currentPage - 1);
     }
   };
+
+  const handleViewerScroll = useCallback(() => {
+    const viewer = viewerRef.current;
+    if (!viewer) return;
+
+    const distanceToBottom = viewer.scrollHeight - viewer.scrollTop - viewer.clientHeight;
+    const lastRenderedPage = renderedPages[renderedPages.length - 1] || 0;
+    if (distanceToBottom < 900 && lastRenderedPage < totalPages) {
+      const nextPages = buildPageWindow(lastRenderedPage + 1, PAGE_BATCH_SIZE, totalPages);
+      setRenderedPages((prev) => Array.from(new Set([...prev, ...nextPages])).sort((a, b) => a - b));
+    }
+
+    const firstRenderedPage = renderedPages[0] || 1;
+    if (viewer.scrollTop < 300 && firstRenderedPage > 1) {
+      const previousStart = Math.max(1, firstRenderedPage - PAGE_BATCH_SIZE);
+      const previousPages = buildPageWindow(previousStart, firstRenderedPage - previousStart, totalPages);
+      setRenderedPages((prev) => Array.from(new Set([...previousPages, ...prev])).sort((a, b) => a - b));
+    }
+
+    const viewerTop = viewer.getBoundingClientRect().top;
+    let closestPage = currentPage;
+    let closestDistance = Number.POSITIVE_INFINITY;
+
+    for (const page of renderedPages) {
+      const element = pageRefs.current[page];
+      if (!element) continue;
+
+      const distance = Math.abs(element.getBoundingClientRect().top - viewerTop - 16);
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestPage = page;
+      }
+    }
+
+    if (closestPage !== currentPage) {
+      setCurrentPage(closestPage);
+    }
+  }, [currentPage, renderedPages, totalPages]);
 
   // Полноэкранный режим
   const toggleFullscreen = () => {
@@ -281,7 +331,7 @@ const BookReaderOptimized: React.FC = () => {
               onChange={(e) => {
                 const page = parseInt(e.target.value);
                 if (page >= 1 && page <= totalPages) {
-                  setCurrentPage(page);
+                  scrollToPage(page);
                 }
               }}
               className="w-16 px-2 py-1 bg-gray-800 border border-gray-600 rounded text-center text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -399,12 +449,16 @@ const BookReaderOptimized: React.FC = () => {
       )}
 
       {/* Основная область: PDF */}
-      <div className="flex-1 overflow-auto bg-gray-900 relative flex items-center justify-center p-4">
+      <div
+        ref={viewerRef}
+        onScroll={handleViewerScroll}
+        className="flex-1 overflow-auto bg-gray-900 relative p-4"
+      >
         {/* PDF Viewer */}
-        {pdfSource ? (
+        {displayBook?.pdf_file_url ? (
           <Document
-            key={pdfSource}
-            file={pdfSource}
+            file={displayBook.pdf_file_url}
+            options={PDF_OPTIONS}
             onLoadSuccess={onDocumentLoadSuccess}
             onLoadProgress={onLoadProgress}
             loading={
@@ -426,16 +480,40 @@ const BookReaderOptimized: React.FC = () => {
                 </button>
               </div>
             }
-            className="flex justify-center"
+            className="flex flex-col items-center gap-6"
           >
-            <Page
-              pageNumber={currentPage}
-              renderTextLayer={showSearch || Boolean(highlightText)}
-              renderAnnotationLayer={false}
-              customTextRenderer={customTextRenderer}
-              className="shadow-2xl"
-              width={Math.min(viewportWidth - 32, 1200) * scale}
-            />
+            {renderedPages.map((pageNumber) => (
+              <div
+                key={pageNumber}
+                ref={(element) => {
+                  pageRefs.current[pageNumber] = element;
+                }}
+                className="flex flex-col items-center gap-2 scroll-mt-4"
+              >
+                <div className="text-xs text-gray-500">
+                  {pageNumber} / {totalPages || '...'}
+                </div>
+                <Page
+                  pageNumber={pageNumber}
+                  renderTextLayer={true}
+                  renderAnnotationLayer={true}
+                  customTextRenderer={customTextRenderer}
+                  loading={
+                    <div className="w-[min(92vw,900px)] h-[70vh] bg-gray-800 animate-pulse rounded-lg flex items-center justify-center text-gray-500">
+                      Загрузка страницы {pageNumber}...
+                    </div>
+                  }
+                  className="shadow-2xl"
+                  width={Math.min(window.innerWidth - 32, 1200) * scale}
+                />
+              </div>
+            ))}
+
+            {(renderedPages[renderedPages.length - 1] || 0) < totalPages && (
+              <div className="py-8 text-sm text-gray-500">
+                Прокрутите ниже, чтобы загрузить следующие страницы...
+              </div>
+            )}
           </Document>
         ) : isWaitingForPdfUrl ? (
           <div className="flex flex-col items-center justify-center gap-4 text-white py-20">

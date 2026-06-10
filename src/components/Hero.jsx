@@ -16,8 +16,7 @@ const LibraryHero = () => {
 
   const stats = [
     { icon: <FaBook className="text-yellow-400" />, value: 1000, label: t("hero.stats.books"), suffix: "+" },
-    { icon: <FaUserGraduate className="text-blue-400" />, value: 500, label: t("hero.stats.readers"), suffix: "+" },
-    { icon: <FaCalendarAlt className="text-red-400" />, value: 2025, label: t("hero.stats.year"), suffix: "" }
+    { icon: <FaUserGraduate className="text-blue-400" />, value: 500, label: t("hero.stats.readers"), suffix: "+" }
   ];
   const [activeStat, setActiveStat] = useState(0);
   const statControls = useAnimation();
@@ -221,6 +220,7 @@ const LibraryHero = () => {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            onClick={() => navigate('/catalog')}
             className="relative px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-full font-bold text-white overflow-hidden group"
           >
             <span className="relative z-10 flex items-center gap-2">

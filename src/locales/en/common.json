@@ -63,7 +63,7 @@
       }
     },
     "stats": [
-      { "label": "Books in collection", "suffix": "1000+" },
+      { "label": "Books in collection", "suffix": "800+" },
       { "label": "Active readers", "suffix": "500+" },
       { "label": "Foundation year", "suffix": "2025" }
     ],

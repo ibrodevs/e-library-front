@@ -332,7 +332,7 @@ const Catalog = () => {
           {filteredBooks.map((book) => (
             <div
               key={book.id}
-              className="bg-gray-900/30 backdrop-blur-lg rounded-2xl overflow-hidden border border-gray-700 hover:border-blue-500/50 transition-all duration-300 group"
+              className="flex flex-col h-full bg-gray-900/30 backdrop-blur-lg rounded-2xl overflow-hidden border border-gray-700 hover:border-blue-500/50 transition-all duration-300 group"
               onMouseEnter={() => setHoveredBook(book.id)}
               onMouseLeave={() => setHoveredBook(null)}
             >
@@ -382,7 +382,7 @@ const Catalog = () => {
                 </div>
               </div>
 
-              <div className="p-6">
+              <div className="p-6 flex flex-col flex-1">
                 {/* Заголовок и автор */}
                 <h3 className="text-xl font-bold text-white mb-2 line-clamp-2 group-hover:text-blue-300 transition-colors">
                   {book.title}
@@ -400,7 +400,7 @@ const Catalog = () => {
                 {/* Кнопка чтения */}
                 <button
                   onClick={() => handleRead(book.id)}
-                  className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 font-semibold group transform hover:scale-105"
+                  className="w-full mt-auto bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 font-semibold group transform hover:scale-105"
                 >
                   <FaBookOpen className="group-hover:scale-110 transition-transform" />
                   <span>{t("library.actions.read")}</span>

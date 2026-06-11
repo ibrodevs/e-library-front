@@ -1,19 +1,20 @@
 {
   "navbar": {
-  "title": "SU e-library",
-  "home": "Home",
-  "catalog": "Catalog",
-  "contacts": "Contacts",
-  "extraLibrary": "Additional Libraries",
-  "externalLibraries": {
-    "geotar": "GEOTAR",
-    "bbk": "BBK",
-    "research4life": "Research4Life",
-    "studentConsultant": "Student Consultant",
-    "ebsco": "EBSCO",
-    "scopus": "Scopus"
-  }
-},
+    "title": "SU e-library",
+    "home": "Home",
+    "catalog": "Catalog",
+    "contacts": "Contacts",
+    "extraLibrary": "Additional Libraries",
+    "externalLibraries": {
+      "geotar": "GEOTAR",
+      "bbk": "BBK",
+      "research4life": "Research4Life",
+      "studentConsultant": "Student Consultant",
+      "ebsco": "EBSCO",
+      "scopus": "Scopus"
+    },
+    "libraryTagline": "Digital Library"
+  },
   "login": {
     "title": "Welcome",
     "subtitle": "Sign in to your account",
@@ -31,9 +32,41 @@
       "general": "Authentication error. Check your email and password."
     }
   },
+  "contactsPage": {
+    "title": "Contacts",
+    "subtitle": "Contact us in any way convenient for you",
+    "info": {
+      "addressLabel": "Our address",
+      "addressValue": "24b Maldybaev St.",
+      "phoneLabel": "Phone",
+      "phoneValue": "+996 707 777 777",
+      "emailLabel": "Email",
+      "emailValue": "info@digitallib.ru",
+      "hoursLabel": "Working Hours",
+      "hoursValue": "Mon–Fri: 9:00 – 19:00"
+    },
+    "socials": "We are on social networks",
+    "form": {
+      "title": "Contact Us",
+      "namePlaceholder": "Your name",
+      "emailPlaceholder": "Your email",
+      "messagePlaceholder": "Your message",
+      "submit": "Send Message",
+      "responseTime": "We will reply to you within 24 hours"
+    },
+    "map": {
+      "university": "Salymbekov University",
+      "address": "34 Salymbekov St., Bishkek",
+      "phone": "+996 (312) 54-19-15",
+      "hours": "Mon-Fri: 8:30 - 17:30"
+    }
+  },
   "hero": {
     "title": "Digital Library",
     "subtitle": "The largest collection of e-books and scientific publications",
+    "badge": "Digital library",
+    "trust": "Free access for students and faculty",
+    "popularLabel": "Popular",
     "startReading": "Start Reading",
     "catalog": "Book Catalog",
     "books": "Books",
@@ -51,21 +84,45 @@
     "nav": {
       "section1": {
         "title": "Quick Links",
-        "items": ["Home", "Books", "Categories", "About Us"]
+        "items": [
+          "Home",
+          "Books",
+          "Categories",
+          "About Us"
+        ]
       },
       "section2": {
         "title": "Resources",
-        "items": ["Blog", "Textbooks", "Help Center", "FAQ"]
+        "items": [
+          "Blog",
+          "Textbooks",
+          "Help Center",
+          "FAQ"
+        ]
       },
       "section3": {
         "title": "Support",
-        "items": ["Contact Us", "Feedback", "Report Issue", "Online Chat"]
+        "items": [
+          "Contact Us",
+          "Feedback",
+          "Report Issue",
+          "Online Chat"
+        ]
       }
     },
     "stats": [
-      { "label": "Books in collection", "suffix": "800+" },
-      { "label": "Active readers", "suffix": "500+" },
-      { "label": "Foundation year", "suffix": "2025" }
+      {
+        "label": "Books in collection",
+        "suffix": "800+"
+      },
+      {
+        "label": "Active readers",
+        "suffix": "500+"
+      },
+      {
+        "label": "Foundation year",
+        "suffix": "2025"
+      }
     ],
     "legal": {
       "privacy": "Privacy Policy",
@@ -156,6 +213,8 @@
     "copyright": "🔒 Protected by copyright. Copying and distribution are prohibited."
   },
   "profile": {
+    "title": "Profile",
+    "role": "Student",
     "logout": "Logout",
     "loading": "Loading profile...",
     "retry": "Try Again",
@@ -243,6 +302,32 @@
       "success": "Password successfully changed!",
       "changeButton": "Change Password",
       "saving": "Saving..."
+    }
+  },
+  "home": {
+    "features": {
+      "title": "Library features",
+      "subtitle": "A modern platform for accessing the university knowledge base",
+      "read": {
+        "title": "Read online",
+        "text": "Read textbooks and academic publications right in your browser — no downloads or installs."
+      },
+      "search": {
+        "title": "Easy search",
+        "text": "Find the materials you need by title, author or category in seconds."
+      },
+      "access": {
+        "title": "Secure access",
+        "text": "A personal student account with secure sign-in via your university email."
+      },
+      "external": {
+        "title": "External databases",
+        "text": "Access leading academic databases: Scopus, EBSCO, GEOTAR and more."
+      }
+    },
+    "cta": {
+      "title": "Start reading right now",
+      "subtitle": "Open the catalog and get access to more than 1000 university publications."
     }
   }
 }

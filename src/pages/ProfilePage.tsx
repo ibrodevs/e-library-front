@@ -9,6 +9,8 @@ import {
   FaUsers,
   FaGraduationCap,
   FaSpinner,
+  FaUser,
+  FaLock,
 } from 'react-icons/fa';
 import ChangePasswordForm from '../components/ChangePasswordForm';
 import { logout } from '../utils/auth';
@@ -28,9 +30,7 @@ const ProfilePage: React.FC = () => {
         const data = await getProfileApi();
         setProfile(data);
       } catch (err: any) {
-        setError(
-          err.response?.data?.detail || t('profile.errors.fetchFailed')
-        );
+        setError(err.response?.data?.detail || t('profile.errors.fetchFailed'));
       } finally {
         setIsLoading(false);
       }
@@ -46,9 +46,9 @@ const ProfilePage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-950 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-white to-slate-50 dark:from-slate-950 dark:to-slate-900">
         <div className="text-center">
-          <FaSpinner className="animate-spin text-4xl text-blue-500 mx-auto mb-4" />
+          <FaSpinner className="mx-auto mb-4 animate-spin text-4xl text-brand-600 dark:text-brand-400" />
           <p className="text-slate-600 dark:text-slate-400">{t('profile.loading')}</p>
         </div>
       </div>
@@ -57,12 +57,12 @@ const ProfilePage: React.FC = () => {
 
   if (error || !profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-950 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-white to-slate-50 dark:from-slate-950 dark:to-slate-900">
         <div className="text-center">
-          <p className="text-red-500 text-lg mb-4">{error || t('profile.errors.fetchFailed')}</p>
+          <p className="mb-4 text-lg text-red-500">{error || t('profile.errors.fetchFailed')}</p>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            className="rounded-xl bg-brand-600 px-5 py-2.5 font-semibold text-white transition-colors hover:bg-brand-700"
           >
             {t('profile.retry')}
           </button>
@@ -73,118 +73,162 @@ const ProfilePage: React.FC = () => {
 
   const fullName = `${profile.last_name} ${profile.first_name}`.trim();
 
+  const fields = [
+    {
+      icon: <FaUser />,
+      label: t('profile.fields.firstName'),
+      value: profile.first_name,
+      tint: 'from-brand-50 to-brand-100 text-brand-700 dark:from-brand-950/80 dark:to-brand-900/40 dark:text-brand-300',
+    },
+    {
+      icon: <FaUser />,
+      label: t('profile.fields.lastName'),
+      value: profile.last_name,
+      tint: 'from-brand-50 to-brand-100 text-brand-700 dark:from-brand-950/80 dark:to-brand-900/40 dark:text-brand-300',
+    },
+    {
+      icon: <FaEnvelope />,
+      label: 'Email',
+      value: profile.email,
+      tint: 'from-sky-50 to-sky-100 text-sky-700 dark:from-sky-950/80 dark:to-sky-900/40 dark:text-sky-300',
+    },
+    {
+      icon: <FaUsers />,
+      label: t('profile.fields.group'),
+      value: profile.group,
+      tint: 'from-indigo-50 to-indigo-100 text-indigo-700 dark:from-indigo-950/80 dark:to-indigo-900/40 dark:text-indigo-300',
+    },
+    {
+      icon: <FaGraduationCap />,
+      label: t('profile.fields.course'),
+      value: profile.course,
+      tint: 'from-emerald-50 to-emerald-100 text-emerald-700 dark:from-emerald-950/80 dark:to-emerald-900/40 dark:text-emerald-300',
+    },
+    {
+      icon: <FaLock />,
+      label: t('profile.fields.password'),
+      value: '••••••••',
+      tint: 'from-slate-100 to-slate-200 text-slate-600 dark:from-slate-800 dark:to-slate-700 dark:text-slate-300',
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-950">
-      {/* Шапка профиля */}
-      <motion.header
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30 shadow-sm"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            {/* Информация о студенте */}
-            <div className="flex items-center gap-4">
-              {/* Аватар */}
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                className="relative"
-              >
+    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50 dark:from-slate-950 dark:to-slate-900">
+      {/* ─── Градиентный баннер ─── */}
+      <div className="relative h-44 overflow-hidden bg-gradient-to-r from-brand-700 via-brand-600 to-indigo-600 sm:h-52">
+        <div
+          className="absolute inset-0 opacity-30"
+          style={{
+            backgroundImage:
+              'linear-gradient(to right, rgba(255,255,255,0.12) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.12) 1px, transparent 1px)',
+            backgroundSize: '40px 40px',
+          }}
+        />
+        <motion.div
+          aria-hidden
+          className="absolute -right-10 -top-10 h-56 w-56 rounded-full bg-white/15 blur-3xl"
+          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
+          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+        />
+      </div>
+
+      <main className="mx-auto -mt-20 max-w-5xl px-4 pb-16 sm:px-6">
+        {/* ─── Карточка-шапка профиля ─── */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="rounded-3xl border border-slate-200/70 bg-white/90 p-6 shadow-xl shadow-slate-900/5 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/80 dark:shadow-black/20 sm:p-8"
+        >
+          <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-end sm:justify-between">
+            <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-end">
+              <motion.div whileHover={{ scale: 1.04 }} className="relative -mt-16 sm:-mt-20">
                 <img
-                  src={'https://ui-avatars.com/api/?name=' + encodeURIComponent(fullName) + '&background=3b82f6&color=fff&size=200'}
+                  src={
+                    'https://ui-avatars.com/api/?name=' +
+                    encodeURIComponent(fullName) +
+                    '&background=1d4ed8&color=fff&size=200'
+                  }
                   alt={fullName}
-                  className="w-14 h-14 rounded-full border-2 border-blue-500 shadow-lg object-cover"
+                  className="h-28 w-28 rounded-2xl border-4 border-white object-cover shadow-xl dark:border-slate-900 sm:h-32 sm:w-32"
                 />
-                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white dark:border-slate-800 rounded-full" />
+                <span className="absolute bottom-1.5 right-1.5 h-4 w-4 rounded-full border-2 border-white bg-emerald-500 dark:border-slate-900" />
               </motion.div>
 
-              {/* Имя и данные */}
-              <div>
-                <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <div className="text-center sm:pb-1 sm:text-left">
+                <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
                   {fullName}
-                  <FaUserGraduate className="text-blue-500 text-sm" />
                 </h1>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
-                  {profile.email}
-                </p>
+                <div className="mt-1.5 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 dark:border-brand-900 dark:bg-brand-950/50 dark:text-brand-300">
+                    <FaUserGraduate className="text-[10px]" />
+                    {t('profile.role')}
+                  </span>
+                  <span className="text-sm text-slate-500 dark:text-slate-400">{profile.email}</span>
+                </div>
               </div>
             </div>
 
-            {/* Кнопка выхода */}
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
               onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium shadow-lg shadow-red-500/30 transition-all"
+              className="inline-flex items-center gap-2 rounded-xl bg-red-500 px-4 py-2.5 font-medium text-white shadow-lg shadow-red-500/25 transition-all hover:bg-red-600"
             >
               <FaSignOutAlt />
               <span>{t('profile.logout')}</span>
             </motion.button>
           </div>
-        </div>
-      </motion.header>
+        </motion.div>
 
-      {/* Основной контент */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Информация о пользователе */}
+        {/* ─── Личные данные ─── */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mb-8"
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mt-10"
         >
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-6">
-            <FaUserGraduate className="text-blue-500" />
+          <h2 className="mb-5 flex items-center gap-2 text-xl font-bold text-slate-900 dark:text-white">
+            <FaUserGraduate className="text-brand-600 dark:text-brand-400" />
             {t('profile.personalInfo')}
           </h2>
 
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-              {/* Имя */}
-              <div className="p-5 border-b md:border-r border-slate-100 dark:border-slate-700">
-                <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">{t('profile.fields.firstName')}</p>
-                <p className="text-lg font-semibold text-slate-900 dark:text-white">{profile.first_name}</p>
-              </div>
-              {/* Фамилия */}
-              <div className="p-5 border-b border-slate-100 dark:border-slate-700">
-                <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">{t('profile.fields.lastName')}</p>
-                <p className="text-lg font-semibold text-slate-900 dark:text-white">{profile.last_name}</p>
-              </div>
-              {/* Email */}
-              <div className="p-5 border-b md:border-r border-slate-100 dark:border-slate-700">
-                <div className="flex items-center gap-2 mb-1">
-                  <FaEnvelope className="text-blue-500 text-xs" />
-                  <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">Email</p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {fields.map((field, i) => (
+              <motion.div
+                key={field.label}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.15 + i * 0.05 }}
+                className="group flex items-center gap-4 rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
+              >
+                <span
+                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${field.tint}`}
+                >
+                  {field.icon}
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                    {field.label}
+                  </p>
+                  <p className="truncate text-base font-semibold text-slate-900 dark:text-white">
+                    {field.value}
+                  </p>
                 </div>
-                <p className="text-lg font-semibold text-slate-900 dark:text-white">{profile.email}</p>
-              </div>
-              {/* Группа */}
-              <div className="p-5 border-b border-slate-100 dark:border-slate-700">
-                <div className="flex items-center gap-2 mb-1">
-                  <FaUsers className="text-indigo-500 text-xs" />
-                  <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('profile.fields.group')}</p>
-                </div>
-                <p className="text-lg font-semibold text-slate-900 dark:text-white">{profile.group}</p>
-              </div>
-              {/* Курс */}
-              <div className="p-5 border-b md:border-r border-slate-100 dark:border-slate-700 md:border-b-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <FaGraduationCap className="text-green-500 text-xs" />
-                  <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('profile.fields.course')}</p>
-                </div>
-                <p className="text-lg font-semibold text-slate-900 dark:text-white">{profile.course}</p>
-              </div>
-              {/* Пароль */}
-              <div className="p-5">
-                <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">{t('profile.fields.password')}</p>
-                <p className="text-lg font-semibold text-slate-900 dark:text-white tracking-widest">********</p>
-              </div>
-            </div>
+              </motion.div>
+            ))}
           </div>
         </motion.section>
 
-        {/* Смена пароля */}
-        <ChangePasswordForm />
+        {/* ─── Смена пароля ─── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.25 }}
+          className="mt-10"
+        >
+          <ChangePasswordForm />
+        </motion.div>
       </main>
     </div>
   );

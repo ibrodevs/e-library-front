@@ -335,7 +335,7 @@ const ChangePasswordForm: React.FC = () => {
           disabled={isSubmitting}
           whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
           whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
-          className={`w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold rounded-lg shadow-lg shadow-blue-500/30 transition-all duration-300 flex items-center justify-center gap-2 ${
+          className={`w-full py-3 px-4 bg-brand-700 hover:bg-brand-800 text-white font-semibold rounded-lg shadow-sm transition-colors duration-200 flex items-center justify-center gap-2 ${
             isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
           }`}
         >

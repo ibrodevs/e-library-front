@@ -585,7 +585,7 @@ const BookReaderOptimized: React.FC = () => {
       {totalPages > 0 && (
         <div className="h-1 bg-gray-800">
           <div
-            className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-300"
+            className="h-full bg-brand-500 transition-all duration-300"
             style={{ width: `${(currentPage / totalPages) * 100}%` }}
           />
         </div>

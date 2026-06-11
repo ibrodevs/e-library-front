@@ -5,37 +5,26 @@ import React from 'react';
  */
 export const BookCardSkeleton: React.FC = () => {
   return (
-    <div className="bg-gray-900/30 backdrop-blur-lg rounded-2xl overflow-hidden border border-gray-700 animate-pulse">
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
       {/* Обложка */}
-      <div className="relative h-64 bg-gradient-to-br from-gray-800 to-gray-700">
-        <div className="absolute top-4 left-4 w-20 h-6 bg-gray-600 rounded-full" />
-        <div className="absolute top-4 right-4 w-12 h-6 bg-gray-600 rounded-lg" />
+      <div className="relative aspect-[3/4] animate-pulse bg-slate-200 dark:bg-slate-800">
+        <div className="absolute left-3 top-3 h-6 w-20 rounded-full bg-slate-300 dark:bg-slate-700" />
+        <div className="absolute right-3 top-3 h-6 w-12 rounded-full bg-slate-300 dark:bg-slate-700" />
       </div>
 
       {/* Контент */}
-      <div className="p-6 space-y-4">
-        {/* Заголовок */}
+      <div className="space-y-4 p-5">
         <div className="space-y-2">
-          <div className="h-6 bg-gray-700 rounded w-3/4" />
-          <div className="h-6 bg-gray-700 rounded w-1/2" />
+          <div className="h-5 w-3/4 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
+          <div className="h-5 w-1/2 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
         </div>
-
-        {/* Автор */}
-        <div className="h-4 bg-gray-700 rounded w-1/3" />
-
-        {/* Описание */}
+        <div className="h-4 w-1/3 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
         <div className="space-y-2">
-          <div className="h-3 bg-gray-700 rounded w-full" />
-          <div className="h-3 bg-gray-700 rounded w-full" />
-          <div className="h-3 bg-gray-700 rounded w-2/3" />
+          <div className="h-3 w-full animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
+          <div className="h-3 w-2/3 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
         </div>
-
-        {/* Кнопка */}
-        <div className="h-12 bg-gradient-to-r from-gray-700 to-gray-600 rounded-xl" />
+        <div className="h-11 animate-pulse rounded-xl bg-slate-200 dark:bg-slate-800" />
       </div>
-
-      {/* Прогресс бар */}
-      <div className="h-1 w-0 bg-gradient-to-r from-cyan-400 to-blue-600" />
     </div>
   );
 };

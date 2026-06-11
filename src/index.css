@@ -1,168 +1,143 @@
 @import "tailwindcss";
 
-/* Скрыть полосу прокрутки глобально (прокрутка остаётся) */
-html {
-  scrollbar-width: none; /* Firefox */
-}
-html::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Edge */
+/* Тёмная тема включается классом .dark на <html> (управляется ThemeContext) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ───────────────── Дизайн-токены ───────────────── */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, Helvetica, Arial, sans-serif;
+
+  /* Фирменный синий (глубокий, академичный) */
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-200: #bfdbfe;
+  --color-brand-300: #93c5fd;
+  --color-brand-400: #60a5fa;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+  --color-brand-800: #1e40af;
+  --color-brand-900: #1e3a8a;
+  --color-brand-950: #172554;
 }
 
-/* Защита контента от скачивания */
-img {
-  -webkit-user-drag: none;
-  user-select: none;
-  pointer-events: auto;
+/* ───────────────── База ───────────────── */
+@layer base {
+  html {
+    scrollbar-width: none; /* Firefox */
+    -webkit-text-size-adjust: 100%;
+  }
+  html::-webkit-scrollbar {
+    display: none;
+  }
+
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased;
+    font-family: var(--font-sans);
+  }
+
+  .dark body {
+    @apply bg-slate-950 text-slate-100;
+  }
+
+  /* Плавная смена темы */
+  body,
+  body * {
+    transition-property: background-color, border-color;
+    transition-duration: 200ms;
+    transition-timing-function: ease;
+  }
+
+  /* Защита контента от перетаскивания */
+  img {
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand-600);
+    outline-offset: 2px;
+  }
+}
+
+/* ───────────────── Утилиты ───────────────── */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Тонкий скроллбар для внутренних областей */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.4);
+  border-radius: 999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.6);
 }
 
 .pdf-viewer {
   max-height: 500px;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #3b82f6 #e5e7eb;
 }
 
-.pdf-viewer::-webkit-scrollbar {
-  width: 8px;
-}
-
-.pdf-viewer::-webkit-scrollbar-track {
-  background: #e5e7eb;
-}
-
-.pdf-viewer::-webkit-scrollbar-thumb {
-  background-color: #3b82f6;
-  border-radius: 4px;
-}
-
-.line-clamp-3 {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;  
-  overflow: hidden;
-}
-
-.nav-link {
-  @apply text-gray-700 hover:text-blue-600 transition duration-300;
-}
-
-.language-btn {
-  @apply px-3 py-1 rounded-md bg-gray-200 text-gray-700;
-}
-
-.language-btn.active {
-  @apply bg-blue-600 text-white;
-}
-
-/* Blob Animations */
-@keyframes blob1 {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+/* ───────────────── Анимации (сдержанные) ───────────────── */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
   }
-  25% {
-    transform: translate(20px, -30px) scale(1.1);
-    border-radius: 30% 60% 70% 40% / 50% 60% 40% 50%;
-  }
-  50% {
-    transform: translate(-20px, 20px) scale(0.9);
-    border-radius: 50% 50% 50% 50% / 40% 60% 50% 60%;
-  }
-  75% {
-    transform: translate(30px, 10px) scale(1.05);
-    border-radius: 70% 30% 50% 50% / 30% 50% 50% 70%;
-  }
-}
-
-@keyframes blob2 {
-  0%, 100% {
-    transform: translate(0, 0) scale(1) rotate(0deg);
-    border-radius: 40% 60% 60% 40% / 60% 40% 60% 40%;
-  }
-  25% {
-    transform: translate(-25px, 20px) scale(1.15) rotate(45deg);
-    border-radius: 60% 40% 30% 70% / 40% 70% 30% 60%;
-  }
-  50% {
-    transform: translate(15px, -25px) scale(0.95) rotate(90deg);
-    border-radius: 30% 70% 40% 60% / 50% 50% 50% 50%;
-  }
-  75% {
-    transform: translate(-15px, -10px) scale(1.1) rotate(135deg);
-    border-radius: 50% 50% 60% 40% / 70% 30% 70% 30%;
-  }
-}
-
-@keyframes blob3 {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-    border-radius: 50% 50% 40% 60% / 50% 60% 40% 50%;
-  }
-  33% {
-    transform: translate(15px, 25px) scale(1.08);
-    border-radius: 70% 30% 60% 40% / 60% 50% 40% 60%;
-  }
-  66% {
-    transform: translate(-20px, -15px) scale(0.92);
-    border-radius: 40% 60% 50% 50% / 30% 70% 60% 40%;
-  }
-}
-
-@keyframes float {
-  0%, 100% {
+  to {
+    opacity: 1;
     transform: translateY(0);
   }
-  50% {
-    transform: translateY(-20px);
+}
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out both;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
+.animate-fade-up {
+  animation: fadeUp 0.5s ease-out both;
+}
 
-@keyframes pulse-slow {
-  0%, 100% {
-    opacity: 0.6;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
-  50% {
-    opacity: 0.8;
-  }
-}
-
-/* Gradient Animation */
-@keyframes gradient-shift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-/* Blob Animation Classes */
-.animate-blob-1 {
-  animation: blob1 20s ease-in-out infinite;
-}
-
-.animate-blob-2 {
-  animation: blob2 25s ease-in-out infinite;
-  animation-delay: 2s;
-}
-
-.animate-blob-3 {
-  animation: blob3 30s ease-in-out infinite;
-  animation-delay: 4s;
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-.animate-pulse-slow {
-  animation: pulse-slow 4s ease-in-out infinite;
-}
-
-.animate-gradient {
-  animation: gradient-shift 15s ease infinite;
-  background-size: 200% 200%;
 }

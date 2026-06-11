@@ -1,465 +1,318 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import logo from '../assets/logo2.png';
-import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
+import { FaUser, FaSignOutAlt, FaChevronDown, FaBars, FaTimes } from 'react-icons/fa';
+import logo from '../assets/logo2.png';
 import { isAuthenticated, getUserData, logout } from '../utils/auth';
-import { FaUser, FaSignOutAlt } from 'react-icons/fa';
+import ThemeToggle from './ThemeToggle';
 
-export default function HeroNavbar() {
+const LANGUAGES = [
+  { code: 'ru', label: 'Рус', flag: 'https://flagcdn.com/w40/ru.png' },
+  { code: 'kg', label: 'Кырг', flag: 'https://flagcdn.com/w40/kg.png' },
+  { code: 'en', label: 'Eng', flag: 'https://flagcdn.com/w40/gb.png' },
+];
+
+const EXTERNAL_LIBRARIES = [
+  { key: 'geotar', url: 'https://edu.geotar.ru/guides/' },
+  { key: 'bbk', url: 'https://biblioclub.ru/index.php?page=bbk_n&sel_node=3' },
+  { key: 'research4life', url: 'https://www.research4life.org' },
+  {
+    key: 'studentConsultant',
+    url: 'https://www.studentlibrary.ru/cgi-bin/mb4x?usr_data=access(2med,NH6KP3JA9H2NWENS-X061,ISBN9785970474907,1,wyd0smqujaa,ru,ru)',
+  },
+  { key: 'ebsco', url: 'https://www.ebsco.com' },
+  { key: 'scopus', url: 'https://www.scopus.com/sources' },
+];
+
+export default function Navbar() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isExtraLibrariesOpen, setIsExtraLibrariesOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
-  const isRTL = i18n.dir() === 'rtl';
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isExtraOpen, setIsExtraOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
   const isAuth = isAuthenticated();
   const userData = getUserData();
 
-  const externalLibraries = [
-    {
-      key: 'geotar',
-      url: 'https://edu.geotar.ru/guides/',
-    },
-    {
-      key: 'bbk',
-      url: 'https://biblioclub.ru/index.php?page=bbk_n&sel_node=3',
-    },
-    {
-      key: 'research4life',
-      url: 'https://www.research4life.org',
-    },
-    {
-      key: 'studentConsultant',
-      url: 'https://www.studentlibrary.ru/cgi-bin/mb4x?usr_data=access(2med,NH6KP3JA9H2NWENS-X061,ISBN9785970474907,1,wyd0smqujaa,ru,ru)',
-    },
-    {
-      key: 'ebsco',
-      url: 'https://www.ebsco.com',
-    },
-    {
-      key: 'scopus',
-      url: 'https://www.scopus.com/sources',
-    },
-  ];
-
-  // Прокрутка вверх при изменении маршрута
   useEffect(() => {
     window.scrollTo(0, 0);
+    setIsMenuOpen(false);
+    setIsExtraOpen(false);
   }, [location.pathname]);
 
   useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
-
+    const handleScroll = () => setIsScrolled(window.scrollY > 8);
+    handleScroll();
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const changeLanguage = (lng) => {
-    i18n.changeLanguage(lng);
-  };
-
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
+  const changeLanguage = (lng) => i18n.changeLanguage(lng);
   const closeMenu = () => {
     setIsMenuOpen(false);
-    setIsExtraLibrariesOpen(false);
-    window.scrollTo(0, 0);
+    setIsExtraOpen(false);
   };
+
+  const navLinkClass = ({ isActiveLike }) =>
+    `relative px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+      isActiveLike
+        ? 'text-brand-700 dark:text-brand-300'
+        : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'
+    }`;
+
+  const isActive = (path) => location.pathname === path;
+
+  const NavLink = ({ to, children }) => (
+    <Link to={to} className={navLinkClass({ isActiveLike: isActive(to) })}>
+      {children}
+      {isActive(to) && (
+        <span className="absolute inset-x-3 -bottom-px h-0.5 rounded-full bg-brand-600 dark:bg-brand-400" />
+      )}
+    </Link>
+  );
 
   return (
     <>
-      <motion.nav
-        className={`fixed w-full z-50 bg-gradient-to-r from-blue-500 to-blue-700 text-white py-4 px-4 md:px-8 flex items-center justify-center gap-8 shadow-xl transition-all duration-300 ${isScrolled ? 'py-3' : 'py-6'
-          }`}
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+      <header
+        className={`fixed inset-x-0 top-0 z-50 border-b transition-all duration-300 ${
+          isScrolled
+            ? 'border-slate-200 bg-white/90 backdrop-blur-md shadow-sm dark:border-slate-800 dark:bg-slate-900/90'
+            : 'border-transparent bg-white dark:bg-slate-900'
+        }`}
       >
-        {/* Логотип слева */}
-        <div className="flex items-center absolute left-4 md:left-8">
-          <Link to="/" className="flex items-center">
-            <img src={logo} alt="Logo" className={`h-10 mr-2 md:h-12 md:mr-3 transition-all duration-300 ${isScrolled ? 'h-8 md:h-10' : 'h-10 md:h-12'
-              }`} />
-          </Link>
-        </div>
-
-        {/* Навигационные ссылки (центр) */}
-        <div className="hidden md:flex space-x-2 lg:space-x-3">
-          <Link
-            to="/"
-            className="relative text-white text-base lg:text-lg font-medium py-2 px-2 lg:px-3 rounded-lg  transition-all group"
-            onClick={() => window.scrollTo(0, 0)}
-          >
-            <span className="relative z-10 flex items-center">
-              {t('navbar.home')}
-              <svg className={`w-4 h-4 ${isRTL ? 'mr-2' : 'ml-2'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
-                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
+        <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 md:px-6">
+          {/* Логотип + вордмарк */}
+          <Link to="/" className="flex items-center gap-3" onClick={closeMenu}>
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-700 shadow-sm">
+              <img src={logo} alt="Salymbekov University" className="h-7 w-7" />
             </span>
-            <span className={`absolute bottom-1 ${isRTL ? 'right-3' : 'left-3'} w-0 h-0.5 bg-gradient-to-r from-white to-blue-600 transition-all duration-500 group-hover:w-[calc(100%-1.5rem)]`}></span>
+            <span className="hidden flex-col leading-tight sm:flex">
+              <span className="text-sm font-bold text-slate-900 dark:text-white">
+                Salymbekov University
+              </span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">
+                {t('navbar.libraryTagline', 'Электронная библиотека')}
+              </span>
+            </span>
           </Link>
 
-          {/* Каталог - только для авторизованных */}
-          {isAuth && (
-            <Link
-              to="/catalog"
-              className="relative text-white text-base lg:text-lg font-medium py-2 px-2 lg:px-3 rounded-lg  transition-all group"
-              onClick={() => window.scrollTo(0, 0)}
-            >
-              <span className="relative z-10 flex items-center">
-                {t('navbar.catalog')}
-                <svg className={`w-4 h-4 ${isRTL ? 'mr-2' : 'ml-2'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
-                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </span>
-              <span className={`absolute bottom-1 ${isRTL ? 'right-3' : 'left-3'} w-0 h-0.5 bg-gradient-to-r from-white to-blue-600 transition-all duration-500 group-hover:w-[calc(100%-1.5rem)]`}></span>
-            </Link>
-          )}
+          {/* Десктоп-навигация */}
+          <div className="hidden items-center gap-1 md:flex">
+            <NavLink to="/">{t('navbar.home')}</NavLink>
+            {isAuth && <NavLink to="/catalog">{t('navbar.catalog')}</NavLink>}
 
-          <div className="relative group">
-            <button
-              type="button"
-              className="relative text-white text-base lg:text-lg font-medium py-2 px-2 lg:px-3 rounded-lg transition-all group"
-            >
-              <span className="relative z-10 flex items-center">
+            {/* Внешние библиотеки */}
+            <div className="group relative">
+              <button
+                type="button"
+                className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+              >
                 {t('navbar.extraLibrary')}
-                <svg
-                  className={`w-4 h-4 ${isRTL ? 'mr-2' : 'ml-2'} transition-transform duration-300 group-hover:rotate-180`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </span>
+                <FaChevronDown className="text-xs transition-transform duration-300 group-hover:rotate-180" />
+              </button>
+              <div className="invisible absolute left-1/2 top-full w-72 -translate-x-1/2 pt-2 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100">
+                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800">
+                  {EXTERNAL_LIBRARIES.map((lib) => (
+                    <a
+                      key={lib.key}
+                      href={lib.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block border-b border-slate-100 px-4 py-2.5 text-sm text-slate-700 transition-colors last:border-b-0 hover:bg-brand-50 hover:text-brand-700 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white"
+                    >
+                      {t(`navbar.externalLibraries.${lib.key}`)}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
 
-              <span className={`absolute bottom-1 ${isRTL ? 'right-3' : 'left-3'} w-0 h-0.5 bg-gradient-to-r from-white to-blue-600 transition-all duration-500 group-hover:w-[calc(100%-1.5rem)]`}></span>
-            </button>
+            <NavLink to="/contacts">{t('navbar.contacts')}</NavLink>
+          </div>
 
-            <div className="invisible opacity-0 group-hover:visible group-hover:opacity-100 absolute top-full left-1/2 -translate-x-1/2 mt-3 w-72 bg-white text-gray-800 rounded-xl shadow-2xl overflow-hidden transition-all duration-300 z-50 border border-blue-100">
-              {externalLibraries.map((library) => (
-                <a
-                  key={library.key}
-                  href={library.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block px-4 py-3 text-sm font-medium hover:bg-blue-50 hover:text-blue-700 transition-colors border-b border-gray-100 last:border-b-0"
+          {/* Правый блок */}
+          <div className="flex items-center gap-2">
+            {/* Языки */}
+            <div className="hidden items-center gap-1 md:flex">
+              {LANGUAGES.map((lng) => (
+                <button
+                  key={lng.code}
+                  onClick={() => changeLanguage(lng.code)}
+                  title={lng.label}
+                  className={`overflow-hidden rounded transition ${
+                    i18n.language === lng.code
+                      ? 'ring-2 ring-brand-600 ring-offset-1 ring-offset-white dark:ring-offset-slate-900'
+                      : 'opacity-60 hover:opacity-100'
+                  }`}
                 >
-                  {t(`navbar.externalLibraries.${library.key}`)}
-                </a>
+                  <img src={lng.flag} alt={lng.label} className="h-5 w-7 object-cover" />
+                </button>
               ))}
             </div>
-          </div>
 
-          <Link
-            to="/contacts"
-            className="relative text-white text-base lg:text-lg font-medium py-2 px-2 lg:px-3 rounded-lg  transition-all group"
-            onClick={() => window.scrollTo(0, 0)}
-          >
-            <span className="relative z-10 flex items-center">
-              {t('navbar.contacts')}
-              <svg className={`w-4 h-4 ${isRTL ? 'mr-2' : 'ml-2'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
-                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </span>
-            <span className={`absolute bottom-1 ${isRTL ? 'right-3' : 'left-3'} w-0 h-0.5 bg-gradient-to-r from-white to-blue-600 transition-all duration-500 group-hover:w-[calc(100%-1.5rem)]`}></span>
-          </Link>
-        </div>
+            <span className="hidden h-6 w-px bg-slate-200 dark:bg-slate-700 md:block" />
 
-        {/* Правый блок: Кнопка входа/профиля + Выход + Языки + Бургер */}
-        <div className="flex items-center space-x-2 md:space-x-4 absolute right-4 md:right-8">
-          {/* Профиль или Вход */}
-          {isAuth ? (
-            <>
-              <Link
-                to="/profile"
-                className="flex relative text-white text-sm md:text-base lg:text-lg font-medium py-2 px-2 md:px-3 rounded-lg transition-all items-center gap-2 bg-white/10 hover:bg-white/20 whitespace-nowrap"
-                onClick={() => window.scrollTo(0, 0)}
-              >
-                <img
-                  src={'https://ui-avatars.com/api/?name=' + encodeURIComponent((userData?.first_name || '') + ' ' + (userData?.last_name || '')) + '&background=3b82f6&color=fff&size=48'}
-                  alt="Avatar"
-                  className="w-6 h-6 rounded-full border border-white/50"
-                />
-                <span className="relative z-10 hidden sm:inline">
-                  {userData?.first_name || t('profile.personalInfo')}
-                </span>
-              </Link>
+            <ThemeToggle className="hidden md:inline-flex" />
 
-              {/* Кнопка выхода */}
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                  logout();
-                  navigate('/login');
-                }}
-                className="hidden md:flex relative text-white text-sm md:text-base font-medium py-2 px-2 md:px-3 rounded-lg transition-all items-center gap-2 bg-red-500/20 hover:bg-red-500/30 whitespace-nowrap"
-                title={t('profile.logout')}
-              >
-                <FaSignOutAlt className="text-sm" />
-                <span className="hidden lg:inline">{t('profile.logout')}</span>
-              </motion.button>
-            </>
-          ) : (
-            <Link
-              to="/login"
-              className="flex relative text-white text-sm md:text-base lg:text-lg font-medium py-2 px-2 md:px-3 rounded-lg bg-white/10 hover:bg-white/20 transition-all whitespace-nowrap"
-              onClick={() => window.scrollTo(0, 0)}
-            >
-              <span className="relative z-10 flex items-center gap-2">
-                <FaUser className="text-sm" />
-                <span className="hidden sm:inline">{t('login.submit')}</span>
-              </span>
-            </Link>
-          )}
-
-          {/* Выбор языка с флагами */}
-          <div className="hidden md:flex space-x-2 lg:space-x-3">
-            <motion.button
-              onClick={() => changeLanguage('ru')}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className={`p-1 rounded-full ${i18n.language === 'ru' ? 'ring-2 ring-white' : ''}`}
-              title="Русский"
-            >
-              <img
-                src="https://flagcdn.com/w40/ru.png"
-                alt="Russian"
-                className="w-6 h-5 lg:w-8 lg:h-6 object-cover rounded"
-              />
-            </motion.button>
-
-            <motion.button
-              onClick={() => changeLanguage('kg')}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className={`p-1 rounded-full ${i18n.language === 'kg' ? 'ring-2 ring-white' : ''}`}
-              title="Кыргызча"
-            >
-              <img
-                src="https://flagcdn.com/w40/kg.png"
-                alt="Kyrgyz"
-                className="w-6 h-5 lg:w-8 lg:h-6 object-cover rounded"
-              />
-            </motion.button>
-
-            <motion.button
-              onClick={() => changeLanguage('en')}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className={`p-1 rounded-full ${i18n.language === 'en' ? 'ring-2 ring-white' : ''}`}
-              title="English"
-            >
-              <img
-                src="https://flagcdn.com/w40/gb.png"
-                alt="English"
-                className="w-6 h-5 lg:w-8 lg:h-6 object-cover rounded"
-              />
-            </motion.button>
-          </div>
-
-          {/* Бургер-меню (мобильная версия) */}
-          <button
-            className="md:hidden focus:outline-none"
-            onClick={toggleMenu}
-          >
-            <div className="w-8 flex flex-col space-y-2">
-              <motion.span
-                animate={{
-                  rotate: isMenuOpen ? 45 : 0,
-                  y: isMenuOpen ? 8 : 0
-                }}
-                className="h-1 bg-white rounded-full"
-              ></motion.span>
-              <motion.span
-                animate={{ opacity: isMenuOpen ? 0 : 1 }}
-                className="h-1 bg-white rounded-full"
-              ></motion.span>
-              <motion.span
-                animate={{
-                  rotate: isMenuOpen ? -45 : 0,
-                  y: isMenuOpen ? -8 : 0
-                }}
-                className="h-1 bg-white rounded-full"
-              ></motion.span>
-            </div>
-          </button>
-        </div>
-      </motion.nav>
-
-      {/* Мобильное меню (появляется при клике) */}
-      <motion.div
-        className="md:hidden bg-blue-600 shadow-lg fixed w-full z-40 mt-16"
-        initial={{ opacity: 0, height: 0 }}
-        animate={{
-          opacity: isMenuOpen ? 1 : 0,
-          height: isMenuOpen ? 'auto' : 0
-        }}
-        transition={{ duration: 0.3 }}
-        style={{ overflow: 'hidden' }}
-      >
-        <div className="flex flex-col px-8 py-4 space-y-6">
-          <Link
-            to="/"
-            className="relative text-white text-xl font-medium py-3 px-4 rounded-lg hover:bg-blue-900/30 transition-all group"
-            onClick={closeMenu}
-          >
-            <span className="relative z-10 flex items-center">
-              {t('navbar.home')}
-              <svg className={`w-5 h-5 ${isRTL ? 'mr-2' : 'ml-2'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
-                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </span>
-            <span className={`absolute bottom-2 ${isRTL ? 'right-4' : 'left-4'} w-0 h-0.5 bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-500 group-hover:w-[calc(100%-2rem)]`}></span>
-          </Link>
-
-          {/* Каталог - только для авторизованных */}
-          {isAuth && (
-            <Link
-              to="/catalog"
-              className="relative text-white text-xl font-medium py-3 px-4 rounded-lg hover:bg-blue-900/30 transition-all group"
-              onClick={closeMenu}
-            >
-              <span className="relative z-10 flex items-center">
-                {t('navbar.catalog')}
-                <svg className={`w-5 h-5 ${isRTL ? 'mr-2' : 'ml-2'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
-                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </span>
-              <span className={`absolute bottom-2 ${isRTL ? 'right-4' : 'left-4'} w-0 h-0.5 bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-500 group-hover:w-[calc(100%-2rem)]`}></span>
-            </Link>
-          )}
-
-          <div className="text-white">
-            <button
-              type="button"
-              className="relative w-full text-left text-white text-xl font-medium py-3 px-4 rounded-lg hover:bg-blue-900/30 transition-all group"
-              onClick={() => setIsExtraLibrariesOpen(!isExtraLibrariesOpen)}
-            >
-              <span className="relative z-10 flex items-center justify-between">
-                {t('navbar.extraLibrary')}
-                <svg
-                  className={`w-5 h-5 ${isRTL ? 'mr-2' : 'ml-2'} transition-transform duration-300 ${isExtraLibrariesOpen ? 'rotate-180' : ''}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+            {/* Профиль / Вход */}
+            {isAuth ? (
+              <div className="hidden items-center gap-2 md:flex">
+                <Link
+                  to="/profile"
+                  className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </span>
-              <span className={`absolute bottom-2 ${isRTL ? 'right-4' : 'left-4'} w-0 h-0.5 bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-500 group-hover:w-[calc(100%-2rem)]`}></span>
-            </button>
-
-            {isExtraLibrariesOpen && (
-              <div className="mt-2 flex flex-col rounded-lg bg-white/10 py-2">
-                {externalLibraries.map((library) => (
-                  <a
-                    key={library.key}
-                    href={library.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mx-2 px-4 py-2 rounded-lg text-base font-medium hover:bg-white/20 transition-all"
-                    onClick={closeMenu}
-                  >
-                    {t(`navbar.externalLibraries.${library.key}`)}
-                  </a>
-                ))}
+                  <img
+                    src={
+                      'https://ui-avatars.com/api/?name=' +
+                      encodeURIComponent(
+                        (userData?.first_name || '') + ' ' + (userData?.last_name || '')
+                      ) +
+                      '&background=1d4ed8&color=fff&size=48'
+                    }
+                    alt="Avatar"
+                    className="h-6 w-6 rounded-full"
+                  />
+                  <span className="max-w-[8rem] truncate">
+                    {userData?.first_name || t('profile.personalInfo')}
+                  </span>
+                </Link>
+                <button
+                  onClick={() => {
+                    logout();
+                    navigate('/login');
+                  }}
+                  title={t('profile.logout')}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 dark:border-slate-700 dark:text-slate-400 dark:hover:border-red-900 dark:hover:bg-red-950/40 dark:hover:text-red-400"
+                >
+                  <FaSignOutAlt />
+                </button>
               </div>
+            ) : (
+              <Link
+                to="/login"
+                className="hidden items-center gap-2 rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-800 md:inline-flex"
+              >
+                <FaUser className="text-xs" />
+                {t('login.submit')}
+              </Link>
             )}
+
+            {/* Бургер */}
+            <button
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 md:hidden"
+              onClick={() => setIsMenuOpen((v) => !v)}
+              aria-label="Меню"
+            >
+              {isMenuOpen ? <FaTimes /> : <FaBars />}
+            </button>
           </div>
+        </nav>
 
-          <Link
-            to="/contacts"
-            className="relative text-white text-xl font-medium py-3 px-4 rounded-lg hover:bg-blue-900/30 transition-all group"
-            onClick={closeMenu}
-          >
-            <span className="relative z-10 flex items-center">
-              {t('navbar.contacts')}
-              <svg className={`w-5 h-5 ${isRTL ? 'mr-2' : 'ml-2'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
-                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </span>
-            <span className={`absolute bottom-2 ${isRTL ? 'right-4' : 'left-4'} w-0 h-0.5 bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-500 group-hover:w-[calc(100%-2rem)]`}></span>
-          </Link>
+        {/* Мобильное меню */}
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25 }}
+              className="overflow-hidden border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 md:hidden"
+            >
+              <div className="space-y-1 px-4 py-4">
+                <Link to="/" onClick={closeMenu} className="block rounded-lg px-3 py-2.5 text-base font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">
+                  {t('navbar.home')}
+                </Link>
+                {isAuth && (
+                  <Link to="/catalog" onClick={closeMenu} className="block rounded-lg px-3 py-2.5 text-base font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">
+                    {t('navbar.catalog')}
+                  </Link>
+                )}
 
-          {/* Профиль или Вход */}
-          {isAuth ? (
-            <Link
-              to="/profile"
-              className="relative text-white text-xl font-medium py-3 px-4 rounded-lg bg-white/10 hover:bg-white/20 transition-all flex items-center gap-3"
-              onClick={closeMenu}
-            >
-              <img
-                src={'https://ui-avatars.com/api/?name=' + encodeURIComponent((userData?.first_name || '') + ' ' + (userData?.last_name || '')) + '&background=3b82f6&color=fff&size=48'}
-                alt="Avatar"
-                className="w-8 h-8 rounded-full border border-white/50"
-              />
-              <span>{userData?.first_name || t('profile.personalInfo')}</span>
-            </Link>
-          ) : (
-            <Link
-              to="/login"
-              className="relative text-white text-xl font-medium py-3 px-4 rounded-lg bg-white/10 hover:bg-white/20 transition-all flex items-center gap-3"
-              onClick={closeMenu}
-            >
-              <FaUser />
-              <span>{t('login.submit')}</span>
-            </Link>
+                <button
+                  type="button"
+                  onClick={() => setIsExtraOpen((v) => !v)}
+                  className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-base font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  {t('navbar.extraLibrary')}
+                  <FaChevronDown className={`text-sm transition-transform ${isExtraOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isExtraOpen && (
+                  <div className="ml-3 space-y-1 border-l border-slate-200 pl-3 dark:border-slate-700">
+                    {EXTERNAL_LIBRARIES.map((lib) => (
+                      <a
+                        key={lib.key}
+                        href={lib.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={closeMenu}
+                        className="block rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+                      >
+                        {t(`navbar.externalLibraries.${lib.key}`)}
+                      </a>
+                    ))}
+                  </div>
+                )}
+
+                <Link to="/contacts" onClick={closeMenu} className="block rounded-lg px-3 py-2.5 text-base font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">
+                  {t('navbar.contacts')}
+                </Link>
+
+                <div className="my-3 h-px bg-slate-200 dark:bg-slate-800" />
+
+                {isAuth ? (
+                  <div className="flex items-center gap-2">
+                    <Link to="/profile" onClick={closeMenu} className="flex flex-1 items-center gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-medium text-slate-700 dark:border-slate-700 dark:text-slate-200">
+                      <img
+                        src={'https://ui-avatars.com/api/?name=' + encodeURIComponent((userData?.first_name || '') + ' ' + (userData?.last_name || '')) + '&background=1d4ed8&color=fff&size=48'}
+                        alt="Avatar"
+                        className="h-7 w-7 rounded-full"
+                      />
+                      {userData?.first_name || t('profile.personalInfo')}
+                    </Link>
+                    <button
+                      onClick={() => {
+                        logout();
+                        closeMenu();
+                        navigate('/login');
+                      }}
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-red-600 dark:border-slate-700 dark:text-red-400"
+                    >
+                      <FaSignOutAlt />
+                    </button>
+                  </div>
+                ) : (
+                  <Link to="/login" onClick={closeMenu} className="flex items-center justify-center gap-2 rounded-lg bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white">
+                    <FaUser className="text-xs" />
+                    {t('login.submit')}
+                  </Link>
+                )}
+
+                <div className="flex items-center justify-between pt-3">
+                  <div className="flex items-center gap-2">
+                    {LANGUAGES.map((lng) => (
+                      <button
+                        key={lng.code}
+                        onClick={() => changeLanguage(lng.code)}
+                        className={`overflow-hidden rounded ${
+                          i18n.language === lng.code ? 'ring-2 ring-brand-600' : 'opacity-60'
+                        }`}
+                      >
+                        <img src={lng.flag} alt={lng.label} className="h-6 w-8 object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                  <ThemeToggle />
+                </div>
+              </div>
+            </motion.div>
           )}
+        </AnimatePresence>
+      </header>
 
-          <div className="flex space-x-4 pt-2">
-            <button
-              onClick={() => {
-                changeLanguage('ru');
-                setIsMenuOpen(false);
-              }}
-              className={`p-1 rounded-full ${i18n.language === 'ru' ? 'ring-2 ring-white' : ''}`}
-              title="Русский"
-            >
-              <img
-                src="https://flagcdn.com/w40/ru.png"
-                alt="Russian"
-                className="w-8 h-6 object-cover rounded"
-              />
-            </button>
-            <button
-              onClick={() => {
-                changeLanguage('kg');
-                setIsMenuOpen(false);
-              }}
-              className={`p-1 rounded-full ${i18n.language === 'kg' ? 'ring-2 ring-white' : ''}`}
-              title="Кыргызча"
-            >
-              <img
-                src="https://flagcdn.com/w40/kg.png"
-                alt="Kyrgyz"
-                className="w-8 h-6 object-cover rounded"
-              />
-            </button>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Добавляем отступ для контента, чтобы он не скрывался под фиксированным навбаром */}
-      <div className={`pt-24 ${isScrolled ? 'pt-20' : 'pt-24'}`}></div>
+      {/* Отступ под фиксированный навбар */}
+      <div className="h-16" />
     </>
   );
 }

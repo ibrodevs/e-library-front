@@ -55,7 +55,10 @@ function cacheSet(key: string, data: unknown): void {
 /** Нормализует поля книги — API может возвращать pdf_url или pdf_file вместо pdf_file_url */
 const normalizeBook = (book: Book): Book => ({
   ...book,
-  pdf_file_url: book.pdf_file_url || book.pdf_url || book.pdf_file || '',
+  pdf_file_url:
+    book.id
+      ? buildBookFileUrl(book.id)
+      : book.pdf_file_url || book.pdf_url || book.pdf_file || '',
   cover_image_url: book.cover_image_url || book.cover_image || '',
 });
 
@@ -70,7 +73,7 @@ export const fetchBooks = async (params: BookQueryParams = {}): Promise<Book[]> 
 
   // Возвращаем кэш мгновенно если он свежий
   const cached = cacheGet<Book[]>(cacheKey);
-  if (cached) return cached;
+  if (cached) return cached.map(normalizeBook);
 
   const { data } = await bookApiClient.get<BooksResponse>('/books/', { params });
   
@@ -97,7 +100,7 @@ export const fetchBookById = async (bookId: number): Promise<Book> => {
   const cacheKey = `book_${bookId}`;
 
   const cached = cacheGet<Book>(cacheKey);
-  if (cached?.pdf_file_url && typeof cached.pdf_file_size !== 'undefined') return cached;
+  if (cached) return normalizeBook(cached);
 
   try {
     const { data } = await bookApiClient.get<Book>(`/books/${bookId}/`);
@@ -258,12 +261,20 @@ export const prefetchPdfBlob = async (pdfUrl?: string): Promise<string | undefin
   }
 
   const request = (async () => {
-    const headResponse = await fetch(pdfUrl, { method: 'HEAD' });
-    if (!headResponse.ok) {
-      throw new Error(`HEAD request failed for ${pdfUrl}`);
+    const probeResponse = await fetch(pdfUrl, {
+      method: 'GET',
+      headers: {
+        Range: 'bytes=0-0',
+      },
+    });
+    if (!probeResponse.ok) {
+      throw new Error(`Probe request failed for ${pdfUrl}`);
     }
 
-    const contentLength = Number(headResponse.headers.get('content-length') || 0);
+    const contentRange = probeResponse.headers.get('content-range');
+    const contentLength = contentRange
+      ? Number(contentRange.split('/').pop() || 0)
+      : Number(probeResponse.headers.get('content-length') || 0);
     if (contentLength && contentLength > FULL_PREFETCH_LIMIT_BYTES) {
       throw new Error(`PDF is too large for eager prefetch: ${contentLength} bytes`);
     }

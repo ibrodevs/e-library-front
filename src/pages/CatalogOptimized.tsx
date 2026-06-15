@@ -162,11 +162,8 @@ const CatalogOptimized: React.FC = () => {
     return category ? category.name : t('library.categories.all');
   }, [selectedCategory, categories, t]);
 
-  const handleBookClick = async (book: Book) => {
-    await Promise.race([
-      prefetchBook(book.id, book.pdf_file_url),
-      new Promise((resolve) => window.setTimeout(resolve, 1200)),
-    ]);
+  const handleBookClick = (book: Book) => {
+    void prefetchBook(book.id, book.pdf_file_url);
     navigate(`/read/${book.id}`);
   };
 

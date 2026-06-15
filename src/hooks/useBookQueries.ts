@@ -50,23 +50,10 @@ export const useBook = (bookId: number) => {
 
   return useQuery({
     queryKey: queryKeys.books.detail(bookId),
-    queryFn: async () => {
-      try {
-        return await bookApi.fetchBookById(bookId);
-      } catch (error) {
-        if (cachedBook) {
-          return {
-            ...cachedBook,
-            pdf_file_url: cachedBook.pdf_file_url || bookApi.buildBookFileUrl(bookId),
-          };
-        }
-        throw error;
-      }
-    },
+    queryFn: () => bookApi.fetchBookById(bookId),
     staleTime: Infinity,
     enabled: !!bookId,
     initialData: cachedBookWithPdfUrl,
-    placeholderData: cachedBookWithPdfUrl ? undefined : cachedBook,
   });
 };
 

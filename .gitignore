@@ -25,3 +25,13 @@ dist-ssr
 *.sw?
 .vercel
 .env*.local
+
+# Local Android build
+mobile/android/
+mobile/*.apk
+mobile/dist/
+mobile/build/
+
+# Expo local junk
+mobile/.expo/
+mobile/.codex-web-export-test/
